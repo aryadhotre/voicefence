@@ -8,9 +8,14 @@ build/
 dist/
 
 # ML artifacts — never commit data or weights
-data/
-datasets/
-runs/
+# Anchored to ml/ specifically (not a bare "data/"/"runs/") — an unanchored
+# pattern here previously also matched, and silently excluded from git, the
+# real source subpackage ml/src/awaaz_ml/data/, breaking every fresh clone
+# (ModuleNotFoundError: No module named 'awaaz_ml.data') while working fine
+# locally since dev envs read straight off disk regardless of git tracking.
+/ml/data/
+/ml/datasets/
+/ml/runs/
 *.pt
 *.pth
 *.onnx
