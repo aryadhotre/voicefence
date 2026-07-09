@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+
+# ML artifacts — never commit data or weights
+data/
+datasets/
+runs/
+*.pt
+*.pth
+*.onnx
+*.flac
+*.wav
+*.mp3
+*.ogg
+*.amr
+*.gsm
+!ml/tests/fixtures/**
+
+# Node (later phases)
+node_modules/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+# Backend env files (secrets/local overrides) — .env.example stays tracked
+backend/.env
+.env
+
+# Local test artifacts / screenshots
+.test-shots/
+
+# Personal Claude Code settings (machine-specific permissions)
+.claude/settings.local.json

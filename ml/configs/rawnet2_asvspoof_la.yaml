@@ -1,0 +1,39 @@
+# Baseline: RawNet2-style detector on ASVspoof 2019 LA.
+# Edit asvspoof_root to your local dataset path.
+
+seed: 1234
+out_dir: "runs/rawnet2_codecaug"
+
+data:
+  asvspoof_root: "D:/datasets/ASVspoof2019/LA"   # <-- EDIT ME
+  samples: 64600            # ~4.04 s @ 16 kHz
+  # Codec-augmented copies of the train set (same protocol, different roots).
+  extra_train_sources:
+    - protocol: "D:/datasets/ASVspoof2019/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt"
+      audio_root: "data/codec_train/opus6k"
+    - protocol: "D:/datasets/ASVspoof2019/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt"
+      audio_root: "data/codec_train/amr475"
+    - protocol: "D:/datasets/ASVspoof2019/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt"
+      audio_root: "data/codec_train/mulaw"
+  extra_dev_sources: []
+
+model:
+  sinc_filters: 20
+  sinc_kernel: 1025
+  sinc_trainable: false      # fixed mel-spaced bank (RawNet2 CM default)
+  gru_hidden: 1024
+  gru_layers: 3
+  fc_hidden: 1024
+
+train:
+  batch_size: 8              # fits ~4 GB VRAM; raise to 32 on 8 GB+
+  eval_batch_size: 16
+  epochs: 60
+  lr: 0.0001
+  weight_decay: 0.0001
+  class_weights: [0.1, 0.9]  # [spoof, bonafide]; LA train ≈ 9:1 spoof:bonafide
+  amp: true
+  num_workers: 4             # lower to 0-2 if Windows DataLoader issues
+  # Quick-run caps (null = full set):
+  max_train_items: null
+  max_dev_items: null

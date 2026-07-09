@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "voicefence-ml"
+version = "0.1.0"
+description = "Voicefence ML core: codec-robust, code-switch-aware audio deepfake detection"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.1",
+    "numpy>=1.24",
+    "soundfile>=0.12",
+    "soxr>=0.3",
+    "pyyaml>=6.0",
+    "tqdm>=4.66",
+]
+
+[project.optional-dependencies]
+# Heavy TTS engines for synthetic data generation. GPU strongly recommended.
+# NOTE licensing:
+#   - parler-tts + ai4bharat/indic-parler-tts checkpoint: Apache-2.0 (commercial-safe)
+#   - coqui-tts XTTS-v2 checkpoint: Coqui Public Model License (NON-COMMERCIAL) —
+#     research/eval only; never in a shipped/commercial training pipeline.
+synth = [
+    "parler-tts>=0.2",
+    "coqui-tts>=0.24",
+    "transformers>=4.43",
+    "accelerate>=0.30",
+    "sentencepiece",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

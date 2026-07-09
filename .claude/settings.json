@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-Process *)",
+      "PowerShell(Get-WinEvent *)",
+      "PowerShell(Get-Date)",
+      "PowerShell(Get-CimInstance *)",
+      "PowerShell(powercfg /query *)"
+    ]
+  }
+}

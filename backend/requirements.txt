@@ -1,0 +1,15 @@
+# Web serving
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+
+# awaaz_ml's own dependencies, pinned to the exact versions validated
+# together during ML development (see ../ml/pyproject.toml for the
+# unpinned range; the ml package itself is installed separately in the
+# Dockerfile with --no-deps so these exact pins are what's actually used).
+torch==2.12.1
+numpy==2.4.6
+soundfile==0.14.0
+soxr==1.1.0
+pyyaml==6.0.3
+tqdm==4.68.3
