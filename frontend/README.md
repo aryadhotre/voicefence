@@ -6,9 +6,11 @@ React 19 + Vite + TypeScript + Tailwind v4 + shadcn/ui client for the
 | Route | Page | Talks to |
 |---|---|---|
 | `/` | Landing | — (marketing/explainer) |
-| `/analyze` | Analyze | `POST /analyze` |
-| `/live` | Live Listen | `WS /ws/live-analyze` (mic capture) |
+| `/analyze` | Analyze | `POST /analyze` (guest-accessible; also the Web Share Target landing page) |
+| `/live` | Live Listen | `WS /ws/live-analyze` (mic capture; guest-accessible) |
 | `/how-it-works` | How It Works | — (static, real numbers from `ml/README.md`) |
+| `/login`, `/signup` | Auth | Supabase Auth |
+| `/history` | Saved history (logged-in only) | Supabase `analysis_history` table |
 
 ## Local setup
 
@@ -74,16 +76,40 @@ chunking logic was code-reviewed carefully (matches the wire protocol in
 `backend/app/routes/stream.py` exactly) but hasn't been exercised with a
 live mic in a real browser. Worth a manual check before relying on it.
 
-## Building for deployment
+## Deploying to Vercel
 
 ```powershell
 npm run build   # outputs dist/
 ```
 
-Set `VITE_API_URL` to the deployed backend's URL at build time (Vite
-inlines `import.meta.env.VITE_*` at build, not runtime) — e.g. for a
-static host:
+Vite inlines every `import.meta.env.VITE_*` value **at build time**, not
+runtime — these three must be set as Environment Variables in the Vercel
+project settings (Project -> Settings -> Environment Variables) *before*
+the build runs, not just in a local `.env`:
 
-```powershell
-$env:VITE_API_URL="https://your-backend.onrender.com"; npm run build
-```
+| Variable | Where it comes from |
+|---|---|
+| `VITE_API_URL` | The deployed `backend/` URL (e.g. its Render URL). **Required** — there's a `http://127.0.0.1:8000` fallback in `src/lib/api.ts` for local dev, so a missing env var here won't fail the build, it'll silently ship a broken Analyze/Live Listen page that tries to reach the visitor's own localhost. |
+| `VITE_SUPABASE_URL` | Supabase dashboard -> Project Settings -> API -> Project URL |
+| `VITE_SUPABASE_ANON_KEY` | Supabase dashboard -> Project Settings -> API -> anon/public key (safe to expose client-side, see `src/lib/supabase.ts`) |
+
+Also update the **backend's** `CORS_ORIGINS` to the Vercel domain once
+it's known (see `../backend/README.md`) — otherwise the deployed
+frontend's requests to `/analyze` and `/ws/live-analyze` will be blocked
+by the browser.
+
+`vercel.json` (repo root of this package) handles the two things a
+Vite SPA needs beyond Vercel's zero-config static build:
+- **SPA fallback** — `/analyze`, `/login`, `/history`, etc. aren't real
+  files in `dist/`; the catch-all rewrite to `/index.html` lets React
+  Router handle them client-side. Real static files (icons, `sw.js`,
+  hashed assets) are still served directly — Vercel only falls back to
+  the rewrite when no file matches.
+- **PWA headers** — `manifest.webmanifest` gets an explicit
+  `Content-Type: application/manifest+json` (not reliably inferred for
+  the `.webmanifest` extension), and `sw.js` / `sw-share-target.js` /
+  `registerSW.js` get `Cache-Control: no-cache` so a new deploy's service
+  worker is picked up promptly instead of served stale from cache
+  (matches `registerType: 'autoUpdate'` in `vite.config.ts`). The
+  content-hashed `workbox-*.js` runtime is cached long-term instead,
+  since a new build always produces a new hash.
