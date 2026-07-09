@@ -40,6 +40,26 @@ export default defineConfig({
             purpose: "maskable",
           },
         ],
+        // Lets Android's share sheet (e.g. sharing a WhatsApp voice note)
+        // list Voicefence as a target. Received by the fetch handler in
+        // public/sw-share-target.js, which stashes the file and redirects
+        // to /analyze — see src/pages/Analyze.tsx's pickup effect.
+        share_target: {
+          action: "/share-target",
+          method: "POST",
+          enctype: "multipart/form-data",
+          params: {
+            files: [{ name: "audio", accept: ["audio/*"] }],
+          },
+        },
+      },
+      workbox: {
+        // Workbox's own fetch listener (installed by the generated SW)
+        // only ever calls respondWith() for precached GET requests, so this
+        // additional listener — registered via importScripts, per
+        // https://developer.chrome.com/docs/workbox/modules/workbox-build/#generateswoptions
+        // — can safely own the POST /share-target route alongside it.
+        importScripts: ["sw-share-target.js"],
       },
     }),
   ],

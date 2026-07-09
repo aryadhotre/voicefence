@@ -3,6 +3,7 @@ import { AlertTriangle, UploadCloud } from "lucide-react"
 import { motion, useSpring, useReducedMotion, type Variants } from "motion/react"
 import { analyzeFile, ApiError, type AnalyzeResponse } from "@/lib/api"
 import { saveHistory } from "@/lib/history"
+import { consumePendingSharedAudio, MAX_SHARE_UPLOAD_MB } from "@/lib/shareTarget"
 import { Kicker, Ticks, SpecCell } from "@/components/ui/dossier"
 import { RadialGauge } from "@/components/anim/RadialGauge"
 import { AnimatedNumber } from "@/components/anim/AnimatedNumber"
@@ -154,6 +155,29 @@ export default function Analyze() {
     },
     [runAnalysis]
   )
+
+  // Picks up a file shared in from another app (e.g. WhatsApp's share
+  // sheet) via the Web Share Target flow — see public/sw-share-target.js,
+  // which redirects here with ?shared=1 after stashing the file.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("shared") !== "1") return
+    window.history.replaceState({}, "", window.location.pathname)
+
+    void (async () => {
+      const shared = await consumePendingSharedAudio()
+      if (!shared) return
+      if (!shared.ok) {
+        setStatus("error")
+        setError(
+          shared.error === "invalid-type"
+            ? "The shared file isn't an audio file."
+            : `The shared file is larger than the ${MAX_SHARE_UPLOAD_MB}MB limit.`
+        )
+        return
+      }
+      void runAnalysis(shared.file)
+    })()
+  }, [runAnalysis])
 
   const isSpoof = result?.verdict === "spoof-like"
 
