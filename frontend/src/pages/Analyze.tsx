@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { AlertTriangle, UploadCloud } from "lucide-react"
 import { motion, useSpring, useReducedMotion, type Variants } from "motion/react"
 import { analyzeFile, ApiError, type AnalyzeResponse } from "@/lib/api"
+import { saveHistory } from "@/lib/history"
 import { Kicker, Ticks, SpecCell } from "@/components/ui/dossier"
 import { RadialGauge } from "@/components/anim/RadialGauge"
 import { AnimatedNumber } from "@/components/anim/AnimatedNumber"
@@ -119,6 +120,14 @@ export default function Analyze() {
       const res = await analyzeFile(file, file.name)
       setResult(res)
       setStatus("done")
+      void saveHistory({
+        verdict: res.verdict,
+        score_mean: res.score_mean,
+        score_min: res.score_min,
+        duration_sec: res.duration_sec,
+        filename: file.name,
+        source: "upload",
+      })
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Could not reach the analysis server. Is the backend running?")
       setStatus("error")

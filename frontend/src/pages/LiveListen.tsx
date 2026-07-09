@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 import { motion, useSpring, useTransform, useReducedMotion } from "motion/react"
 import { liveAnalyzeUrl, type StreamMessage, type StreamScoreMessage } from "@/lib/api"
+import { saveHistory } from "@/lib/history"
 import { Kicker, Ticks, SpecCell } from "@/components/ui/dossier"
 import { RadialGauge } from "@/components/anim/RadialGauge"
 import { cn } from "@/lib/utils"
@@ -66,6 +67,39 @@ export default function LiveListen() {
   const processorRef = useRef<ScriptProcessorNode | null>(null)
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null)
   const pcmBufferRef = useRef<Float32Array>(new Float32Array(0))
+  // Mirrors `history` so the end-of-session save can read the final scores
+  // without needing `history` in stop()'s deps (which changes every score).
+  const historyRef = useRef<StreamScoreMessage[]>([])
+  const savedRef = useRef(false)
+
+  useEffect(() => {
+    historyRef.current = history
+  }, [history])
+
+  // Saves one session-level summary row (mean/min of the smoothed scores)
+  // when a live-listen call ends — guarded so it fires at most once per
+  // session, however the session ends (Stop button, server call_ended, or
+  // a connection error).
+  const flushSessionHistory = useCallback(() => {
+    if (savedRef.current) return
+    const scores = historyRef.current
+    if (scores.length === 0) return
+    savedRef.current = true
+
+    const smoothed = scores.map((s) => s.smoothed_score)
+    const mean = smoothed.reduce((a, b) => a + b, 0) / smoothed.length
+    const min = Math.min(...smoothed)
+    const last = scores[scores.length - 1]
+
+    void saveHistory({
+      verdict: last.verdict,
+      score_mean: mean,
+      score_min: min,
+      duration_sec: last.duration_sec,
+      filename: null,
+      source: "live",
+    })
+  }, [])
 
   const cleanupAudio = useCallback(() => {
     try {
@@ -91,7 +125,8 @@ export default function LiveListen() {
     wsRef.current = null
     cleanupAudio()
     setCallState((s) => (s === "error" ? s : "ended"))
-  }, [cleanupAudio])
+    flushSessionHistory()
+  }, [cleanupAudio, flushSessionHistory])
 
   const start = useCallback(async () => {
     setErrorMsg(null)
@@ -99,6 +134,8 @@ export default function LiveListen() {
     setHistory([])
     setLatest(null)
     setCallState("connecting")
+    historyRef.current = []
+    savedRef.current = false
 
     let stream: MediaStream
     try {
@@ -185,13 +222,14 @@ export default function LiveListen() {
       setErrorMsg("Connection to the analysis server was lost. Is the backend running?")
       setCallState("error")
       cleanupAudio()
+      flushSessionHistory()
     }
 
     ws.onclose = () => {
       cleanupAudio()
       setCallState((s) => (s === "error" || s === "ended" ? s : "ended"))
     }
-  }, [cleanupAudio, stop])
+  }, [cleanupAudio, stop, flushSessionHistory])
 
   // Stop everything if the user navigates away mid-call.
   useEffect(() => {
