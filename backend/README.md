@@ -155,7 +155,7 @@ list with descriptions. Key ones:
 | `MAX_UPLOAD_MB` | `25` | Reject uploads larger than this (`/analyze`) |
 | `MAX_CALL_SECONDS` | `600` | End a live-analyze call after this long (`/ws/live-analyze`) |
 | `MAX_WS_CHUNK_BYTES` | `1000000` | Close the connection if a single binary frame exceeds this (`/ws/live-analyze`) |
-| `PORT` | `8000` | uvicorn bind port (Render sets this itself) |
+| `PORT` | `10000` | uvicorn bind port. Render *should* inject this itself — but its `PORT` injection for Docker-type services isn't as consistently reliable as it is for native/buildpack runtimes, so the Dockerfile's own fallback default is set to Render's documented default (10000, not the more common 8000) rather than risk a mismatch between what Render's port scanner expects and what the container actually binds. Don't override it manually unless you have a specific reason to. |
 
 ## Deploying the checkpoint file (read this before deploying)
 
@@ -227,7 +227,13 @@ This is a monorepo — `backend/` imports the sibling `ml/` package, so the
    above). Set `CORS_ORIGINS` to your actual frontend domain once it
    exists instead of leaving it at `*`.
 5. Render injects `PORT` itself — the Dockerfile's `CMD` already reads
-   `${PORT}`, don't override it.
+   `${PORT}`, don't override it. If a deploy ever gets stuck on "No open
+   ports detected, continuing to scan" despite the app logging that it
+   started successfully, that's this: Render's `PORT` injection didn't
+   reach the container, so it fell back to whatever the Dockerfile
+   defaults to — which is why that fallback is now pinned to 10000
+   (Render's own documented default) instead of a value picked for local
+   dev convenience.
 6. Instance size: this model runs on CPU fine for single-file inference
    (no GPU needed/available on standard Render plans) — a small instance
    is enough; the ~200MB checkpoint plus PyTorch's own footprint wants at

@@ -29,8 +29,15 @@ RUN pip install --no-cache-dir --no-deps /app/ml
 COPY backend/app /app/backend/app
 
 WORKDIR /app/backend
-ENV PORT=8000
-EXPOSE 8000
+# 10000 matches Render's own documented default PORT for web services
+# (https://render.com/docs/web-services#port-binding). Render's PORT
+# injection for Docker-type services isn't as consistently reliable as it
+# is for native/buildpack runtimes — if it doesn't fire for some reason,
+# this fallback still binds to the exact port Render's scanner expects,
+# instead of silently defaulting to a different port (e.g. 8000) that
+# never gets detected ("No open ports detected, continuing to scan").
+ENV PORT=10000
+EXPOSE 10000
 
 # Shell form so ${PORT} expands (Render injects its own PORT at runtime).
 CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT}
