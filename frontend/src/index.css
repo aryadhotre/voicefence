@@ -142,6 +142,25 @@
   color: #fff;
 }
 
+/* Headline default: confident Geist with tight tracking. Individual pages
+   size with clamp() utilities; this only sets the shared voice. */
+@layer base {
+  h1, h2, h3 {
+    @apply font-sans font-semibold tracking-tight;
+  }
+}
+
+/* Soft violet radial wash used behind the 3D hero object and section
+   accents — pure CSS, sits under the WebGL canvas. */
+.glow-radial {
+  background: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    rgba(139, 92, 246, 0.28) 0%,
+    rgba(139, 92, 246, 0.1) 40%,
+    transparent 70%
+  );
+}
+
 /* Static film grain over everything — one tiny SVG turbulence tile, no
    animation, pointer-transparent. Gives the flat dark surfaces a physical
    print texture. */

@@ -2,8 +2,9 @@ import type { ReactNode } from "react"
 import { cn } from "@/lib/utils"
 
 /**
- * Editorial section kicker: index number + mono uppercase label + hairline
- * rule. The recurring wayfinding device of the redesign.
+ * Section kicker: a small violet marker + quiet uppercase sans label.
+ * The single recurring wayfinding device — deliberately understated so the
+ * large sans headlines below it carry the hierarchy.
  */
 export function Kicker({
   index,
@@ -15,34 +16,33 @@ export function Kicker({
   className?: string
 }) {
   return (
-    <div className={cn("flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.25em] text-white/40", className)}>
-      {index && <span className="text-violet-400/80">{index}</span>}
+    <div
+      className={cn(
+        "flex items-center gap-2.5 text-xs font-medium uppercase tracking-[0.14em] text-white/40",
+        className
+      )}
+    >
+      <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-violet-400" />
       <span>{label}</span>
-      <span className="h-px flex-1 bg-white/10" aria-hidden />
+      {index && <span className="sr-only">{index}</span>}
     </div>
   )
 }
 
-/** Four "+" register marks in the corners of a panel — print/schematic feel. */
+/**
+ * Legacy print-register corner marks from the old dossier look. Kept as a
+ * no-op export until every usage is removed, so intermediate commits build.
+ */
 export function Ticks({ className }: { className?: string }) {
-  const pos = [
-    "left-1.5 top-0.5",
-    "right-1.5 top-0.5",
-    "left-1.5 bottom-0.5",
-    "right-1.5 bottom-0.5",
-  ]
-  return (
-    <span aria-hidden className={cn("pointer-events-none absolute inset-0", className)}>
-      {pos.map((p) => (
-        <span key={p} className={cn("absolute font-mono text-[10px] leading-none text-white/25", p)}>
-          +
-        </span>
-      ))}
-    </span>
-  )
+  void className
+  return null
 }
 
-/** Mono key/value cell used in spec strips and report headers. */
+/**
+ * Key/value cell for genuinely technical readouts (scores, durations,
+ * thresholds, model specs). The value stays monospace on purpose — this is
+ * the one place mono belongs.
+ */
 export function SpecCell({
   label,
   value,
@@ -54,8 +54,10 @@ export function SpecCell({
 }) {
   return (
     <div className={cn("flex flex-col gap-1", className)}>
-      <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">{label}</span>
-      <span className="font-mono text-sm text-white/85">{value}</span>
+      <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-white/35">
+        {label}
+      </span>
+      <span className="font-mono text-sm tabular-nums text-white/85">{value}</span>
     </div>
   )
 }

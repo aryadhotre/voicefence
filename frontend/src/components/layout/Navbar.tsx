@@ -5,13 +5,13 @@ import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/auth"
 
 const baseLinks = [
-  { to: "/", label: "Home", index: "01" },
-  { to: "/analyze", label: "Analyze", index: "02" },
-  { to: "/live", label: "Live Listen", index: "03" },
-  { to: "/how-it-works", label: "How It Works", index: "04" },
+  { to: "/", label: "Home" },
+  { to: "/analyze", label: "Analyze" },
+  { to: "/live", label: "Live Listen" },
+  { to: "/how-it-works", label: "How It Works" },
 ]
 
-const historyLink = { to: "/history", label: "History", index: "05" }
+const historyLink = { to: "/history", label: "History" }
 
 export function Navbar() {
   const [open, setOpen] = useState(false)
@@ -27,45 +27,39 @@ export function Navbar() {
   }
 
   return (
-    <header className="fixed top-0 z-50 w-full border-b border-white/10 bg-[#08060d]/70 backdrop-blur-md">
+    <header className="fixed top-0 z-50 w-full border-b border-white/[0.06] bg-[#08060d]/70 backdrop-blur-md">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-8">
-        <NavLink to="/" className="flex items-baseline gap-2.5 text-white" onClick={() => setOpen(false)}>
-          <span className="font-serif text-xl italic leading-none text-violet-300">Voice</span>
-          <span className="font-mono text-[11px] uppercase tracking-[0.3em] text-white/80">
-            Fence
-          </span>
+        <NavLink
+          to="/"
+          className="text-[17px] font-semibold tracking-tight text-white"
+          onClick={() => setOpen(false)}
+        >
+          Voicefence<span className="text-violet-400">.</span>
         </NavLink>
 
-        <div className="hidden items-center gap-6 md:flex">
+        <div className="hidden items-center gap-7 md:flex">
           {links.map((l) => (
             <NavLink
               key={l.to}
               to={l.to}
               className={({ isActive }) =>
                 cn(
-                  "group flex items-baseline gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-white/50 transition-colors hover:text-white",
+                  "text-[13px] font-medium text-white/55 transition-colors hover:text-white",
                   isActive && "text-white"
                 )
               }
             >
-              {({ isActive }) => (
-                <>
-                  <span className={cn("text-[9px]", isActive ? "text-violet-400" : "text-white/25 group-hover:text-violet-400/70")}>
-                    {l.index}
-                  </span>
-                  {l.label}
-                </>
-              )}
+              {l.label}
             </NavLink>
           ))}
         </div>
 
-        <div className="hidden items-center gap-4 md:flex">
+        <div className="hidden items-center gap-3 md:flex">
           {!loading &&
             (user ? (
               <div className="flex items-center gap-3">
                 <span
-                  className="max-w-[140px] truncate font-mono text-[11px] text-white/50"
+                  className="max-w-[140px] truncate text-[13px] text-white/50"
                   title={user.email}
                 >
                   {user.email}
@@ -73,7 +67,7 @@ export function Navbar() {
                 <button
                   type="button"
                   onClick={() => void handleSignOut()}
-                  className="border border-white/20 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-white/70 transition-colors hover:border-rose-400/50 hover:text-rose-300"
+                  className="rounded-full border border-white/15 px-4 py-1.5 text-[13px] font-medium text-white/70 transition-colors hover:border-white/30 hover:text-white"
                 >
                   Log out
                 </button>
@@ -82,13 +76,13 @@ export function Navbar() {
               <div className="flex items-center gap-3">
                 <NavLink
                   to="/login"
-                  className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/60 transition-colors hover:text-white"
+                  className="text-[13px] font-medium text-white/60 transition-colors hover:text-white"
                 >
                   Log in
                 </NavLink>
                 <NavLink
                   to="/signup"
-                  className="border border-white/20 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-white transition-colors hover:border-violet-400/60 hover:bg-violet-400/10"
+                  className="rounded-full border border-white/15 px-4 py-1.5 text-[13px] font-medium text-white transition-colors hover:border-white/30"
                 >
                   Sign up
                 </NavLink>
@@ -97,9 +91,9 @@ export function Navbar() {
 
           <NavLink
             to="/analyze"
-            className="border border-white/20 px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-white transition-colors hover:border-violet-400/60 hover:bg-violet-400/10"
+            className="rounded-full bg-white px-4 py-1.5 text-[13px] font-medium text-black transition-colors hover:bg-white/85"
           >
-            Run a check ↗
+            Run a check
           </NavLink>
         </div>
 
@@ -114,7 +108,7 @@ export function Navbar() {
       </nav>
 
       {open && (
-        <div className="border-t border-white/10 bg-[#08060d]/95 px-4 py-3 md:hidden">
+        <div className="border-t border-white/[0.06] bg-[#08060d]/95 px-4 py-3 md:hidden">
           <div className="flex flex-col gap-1">
             {links.map((l) => (
               <NavLink
@@ -123,28 +117,25 @@ export function Navbar() {
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-baseline gap-2 px-3 py-2.5 font-mono text-xs uppercase tracking-[0.18em] text-white/60 transition-colors hover:bg-white/5 hover:text-white",
+                    "rounded-lg px-3 py-2.5 text-sm font-medium text-white/60 transition-colors hover:bg-white/5 hover:text-white",
                     isActive && "bg-white/5 text-white"
                   )
                 }
               >
-                <span className="text-[9px] text-violet-400/70">{l.index}</span>
                 {l.label}
               </NavLink>
             ))}
           </div>
 
-          <div className="mt-3 border-t border-white/10 pt-3">
+          <div className="mt-3 border-t border-white/[0.06] pt-3">
             {!loading &&
               (user ? (
                 <div className="flex flex-col gap-2 px-3">
-                  <span className="break-all font-mono text-[11px] text-white/50">
-                    {user.email}
-                  </span>
+                  <span className="break-all text-[13px] text-white/50">{user.email}</span>
                   <button
                     type="button"
                     onClick={() => void handleSignOut()}
-                    className="border border-white/20 px-3 py-2.5 text-left font-mono text-xs uppercase tracking-[0.18em] text-white/70 transition-colors hover:border-rose-400/50 hover:text-rose-300"
+                    className="rounded-full border border-white/15 px-4 py-2.5 text-left text-sm font-medium text-white/70 transition-colors hover:border-white/30 hover:text-white"
                   >
                     Log out
                   </button>
@@ -154,14 +145,14 @@ export function Navbar() {
                   <NavLink
                     to="/login"
                     onClick={() => setOpen(false)}
-                    className="font-mono text-xs uppercase tracking-[0.18em] text-white/60 transition-colors hover:text-white"
+                    className="text-sm font-medium text-white/60 transition-colors hover:text-white"
                   >
                     Log in
                   </NavLink>
                   <NavLink
                     to="/signup"
                     onClick={() => setOpen(false)}
-                    className="border border-white/20 px-3 py-2.5 text-center font-mono text-xs uppercase tracking-[0.18em] text-white transition-colors hover:border-violet-400/60 hover:bg-violet-400/10"
+                    className="rounded-full border border-white/15 px-4 py-2.5 text-center text-sm font-medium text-white transition-colors hover:border-white/30"
                   >
                     Sign up
                   </NavLink>
