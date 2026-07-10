@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 import { AlertTriangle } from "lucide-react"
 import { motion, type Variants } from "motion/react"
-import { Kicker, Ticks } from "@/components/ui/dossier"
+import { Kicker } from "@/components/ui/dossier"
 import { Reveal } from "@/components/anim/Reveal"
 import { AnimatedNumber } from "@/components/anim/AnimatedNumber"
 
@@ -52,9 +52,9 @@ export default function HowItWorks() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-16 md:px-8">
       <Reveal className="mb-16">
-        <Kicker index="04" label="Evidence" />
-        <h1 className="mt-6 font-serif text-4xl leading-tight text-white md:text-6xl">
-          How it works — <em className="italic text-violet-300">the honest numbers.</em>
+        <Kicker label="Evidence" />
+        <h1 className="mt-6 text-4xl leading-tight text-white md:text-6xl">
+          How it works — the honest numbers<span className="text-violet-400">.</span>
         </h1>
         <p className="mt-4 max-w-2xl text-white/55">
           What the detector was trained and measured on, where it holds up,
@@ -108,7 +108,7 @@ export default function HowItWorks() {
         </Reveal>
 
         <Reveal delay={0.05} className="mt-10">
-          <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.3em] text-white/35">
+          <p className="mb-3 text-xs font-medium uppercase tracking-[0.12em] text-white/35">
             Full per-attack EER, clean eval set
           </p>
           <Table
@@ -158,12 +158,12 @@ export default function HowItWorks() {
         <Reveal>
           <SectionHeading index="04.4" kicker="Disclosure" title="Known limitations" />
         </Reveal>
-        <ul className="space-y-px bg-white/10">
+        <ul className="space-y-3">
           {limitations.map((l, i) => (
             <Reveal key={l} delay={i * 0.08}>
-              <li className="flex gap-4 bg-[#0b0912] p-5 text-sm leading-relaxed text-white/60">
-                <span className="font-mono text-[10px] leading-6 text-amber-400/80">
-                  L{i + 1}
+              <li className="flex gap-4 rounded-xl border border-white/[0.07] bg-white/[0.02] p-5 text-sm leading-relaxed text-white/60">
+                <span className="text-xs font-medium leading-6 text-amber-400/80">
+                  {i + 1}
                 </span>
                 {l}
                 <AlertTriangle className="ml-auto mt-0.5 h-4 w-4 shrink-0 text-amber-400/60" strokeWidth={1.5} />
@@ -180,7 +180,7 @@ function SectionHeading({ index, kicker, title }: { index: string; kicker: strin
   return (
     <div className="mb-6">
       <Kicker index={index} label={kicker} />
-      <h2 className="mt-4 font-serif text-3xl text-white md:text-4xl">{title}</h2>
+      <h2 className="mt-4 text-3xl text-white md:text-4xl">{title}</h2>
     </div>
   )
 }
@@ -204,13 +204,12 @@ function Table({
   flagIndexes?: number[]
 }) {
   return (
-    <div className="relative overflow-x-auto border border-white/10">
-      <Ticks />
+    <div className="relative overflow-x-auto rounded-xl border border-white/[0.08]">
       <table className="w-full text-left text-sm">
         <thead>
           <tr className="border-b border-white/10 bg-white/[0.03]">
             {head.map((h) => (
-              <th key={h} className="px-5 py-3 font-mono text-[10px] font-normal uppercase tracking-[0.25em] text-white/40">
+              <th key={h} className="px-5 py-3 text-xs font-medium uppercase tracking-[0.12em] text-white/40">
                 {h}
               </th>
             ))}
@@ -287,8 +286,7 @@ function ArchitectureDiagram() {
   const midY = STAGE_H / 2 + 8
 
   return (
-    <div className="relative overflow-x-auto border border-white/10 bg-white/[0.015] p-5">
-      <Ticks />
+    <div className="relative overflow-x-auto rounded-xl border border-white/[0.08] bg-white/[0.015] p-5">
       <motion.svg
         viewBox={`0 0 ${totalW} ${STAGE_H + 16}`}
         className="mx-auto block h-auto w-full min-w-[560px] max-w-3xl"

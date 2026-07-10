@@ -9,12 +9,10 @@ export function AuthField({
 }: { label: string; error?: string } & InputHTMLAttributes<HTMLInputElement>) {
   return (
     <label className="flex flex-col gap-2">
-      <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
-        {label}
-      </span>
+      <span className="text-[13px] font-medium text-white/50">{label}</span>
       <input
         className={cn(
-          "border border-white/15 bg-white/[0.02] px-4 py-3 font-mono text-sm text-white placeholder:text-white/25 transition-colors focus:border-violet-400/60 focus:outline-none",
+          "rounded-lg border border-white/12 bg-white/[0.03] px-4 py-3 text-sm text-white placeholder:text-white/25 transition-colors focus:border-violet-400/60 focus:outline-none",
           error && "border-rose-500/50",
           className
         )}

@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { AlertTriangle, MailCheck } from "lucide-react"
 import { motion } from "motion/react"
-import { Kicker, Ticks } from "@/components/ui/dossier"
+import { Kicker } from "@/components/ui/dossier"
 import { AuthField } from "@/components/auth/AuthField"
 import { useAuth } from "@/lib/auth"
 import { cn } from "@/lib/utils"
@@ -51,13 +51,12 @@ export default function Signup() {
       <div className="mx-auto max-w-md px-6 py-16 md:px-8 md:py-24">
         <Kicker label="Account access" />
         <motion.div
-          className="relative mt-10 flex flex-col items-center gap-4 border border-white/12 bg-white/[0.02] p-8 text-center"
+          className="relative mt-10 flex flex-col items-center gap-4 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-8 text-center"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <Ticks />
           <MailCheck className="h-8 w-8 text-violet-300" strokeWidth={1.5} />
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-white">
+          <p className="text-lg font-semibold tracking-tight text-white">
             Check your inbox
           </p>
           <p className="text-sm text-white/55">
@@ -66,7 +65,7 @@ export default function Signup() {
           </p>
           <Link
             to="/login"
-            className="mt-2 border border-white/25 bg-white/[0.04] px-7 py-3 font-mono text-xs uppercase tracking-[0.2em] text-white transition-colors hover:border-violet-400/70 hover:bg-violet-400/10"
+            className="mt-2 rounded-full bg-white px-7 py-3 text-[15px] font-medium text-black transition-colors hover:bg-white/85"
           >
             Go to login
           </Link>
@@ -78,8 +77,8 @@ export default function Signup() {
   return (
     <div className="mx-auto max-w-md px-6 py-16 md:px-8 md:py-24">
       <Kicker label="Account access" />
-      <h1 className="mt-6 font-serif text-4xl leading-tight text-white md:text-5xl">
-        Sign <em className="italic text-violet-300">up.</em>
+      <h1 className="mt-6 text-4xl leading-tight text-white md:text-5xl">
+        Sign up<span className="text-violet-400">.</span>
       </h1>
       <p className="mt-4 text-white/55">
         Create an account to keep a history of your analysis results.
@@ -88,14 +87,12 @@ export default function Signup() {
 
       <motion.form
         onSubmit={onSubmit}
-        className="relative mt-10 flex flex-col gap-5 border border-white/12 bg-white/[0.02] p-6 md:p-8"
+        className="relative mt-10 flex flex-col gap-5 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6 md:p-8"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
         noValidate
       >
-        <Ticks />
-
         <AuthField
           label="Email"
           type="email"
@@ -123,7 +120,7 @@ export default function Signup() {
         />
 
         {error && (
-          <div className="flex items-start gap-3 border border-rose-500/30 bg-rose-500/10 p-3">
+          <div className="flex items-start gap-3 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-400" />
             <p className="text-xs text-rose-200/80">{error}</p>
           </div>
@@ -133,16 +130,16 @@ export default function Signup() {
           type="submit"
           disabled={submitting}
           className={cn(
-            "mt-2 border border-white/25 bg-white/[0.04] px-8 py-3.5 font-mono text-xs uppercase tracking-[0.2em] text-white transition-colors hover:border-violet-400/70 hover:bg-violet-400/10",
+            "mt-2 rounded-full bg-white px-8 py-3.5 text-[15px] font-medium text-black transition-colors hover:bg-white/85",
             submitting && "pointer-events-none opacity-50"
           )}
         >
-          {submitting ? "Creating account…" : "Sign up →"}
+          {submitting ? "Creating account…" : "Sign up"}
         </button>
 
-        <p className="text-center font-mono text-[11px] uppercase tracking-[0.15em] text-white/40">
+        <p className="text-center text-[13px] text-white/40">
           Already have an account?{" "}
-          <Link to="/login" className="text-violet-300 transition-colors hover:text-violet-200">
+          <Link to="/login" className="font-medium text-violet-300 transition-colors hover:text-violet-200">
             Log in
           </Link>
         </p>

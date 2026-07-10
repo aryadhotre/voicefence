@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { AlertTriangle, FileAudio, Radio } from "lucide-react"
 import { motion } from "motion/react"
-import { Kicker, Ticks, SpecCell } from "@/components/ui/dossier"
+import { Kicker, SpecCell } from "@/components/ui/dossier"
 import { supabase } from "@/lib/supabase"
 import type { AnalysisHistoryRow } from "@/lib/history"
 import { cn } from "@/lib/utils"
@@ -28,9 +28,9 @@ export default function History() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-16 md:px-8">
-      <Kicker index="05" label="Saved history" />
-      <h1 className="mt-6 font-serif text-4xl leading-tight text-white md:text-6xl">
-        Your <em className="italic text-violet-300">history.</em>
+      <Kicker label="Saved history" />
+      <h1 className="mt-6 text-4xl leading-tight text-white md:text-6xl">
+        Your history<span className="text-violet-400">.</span>
       </h1>
       <p className="mt-4 max-w-xl text-white/55">
         Every analysis you ran while logged in, newest first.
@@ -38,7 +38,7 @@ export default function History() {
 
       {error && (
         <motion.div
-          className="mt-8 flex items-start gap-3 border border-rose-500/30 bg-rose-500/10 p-4"
+          className="mt-8 flex items-start gap-3 rounded-xl border border-rose-500/30 bg-rose-500/10 p-4"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
         >
@@ -48,22 +48,19 @@ export default function History() {
       )}
 
       {rows === null && !error && (
-        <p className="mt-10 font-mono text-xs uppercase tracking-[0.2em] text-white/40">
-          Loading…
-        </p>
+        <p className="mt-10 text-sm font-medium text-white/40">Loading…</p>
       )}
 
       {rows && rows.length === 0 && (
-        <div className="relative mt-10 border border-white/12 bg-white/[0.02] p-12 text-center">
-          <Ticks />
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-white/40">
+        <div className="relative mt-10 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-12 text-center">
+          <p className="text-sm font-medium text-white/40">
             No saved results yet — run an analysis while logged in.
           </p>
         </div>
       )}
 
       {rows && rows.length > 0 && (
-        <div className="mt-10 divide-y divide-white/10 border border-white/12 bg-[#0b0912]">
+        <div className="mt-10 divide-y divide-white/[0.06] overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0d0a16]">
           {rows.map((row) => {
             const isSpoof = row.verdict === "spoof-like"
             return (
@@ -80,10 +77,10 @@ export default function History() {
                     <FileAudio className="h-5 w-5 shrink-0 text-white/35" strokeWidth={1.5} />
                   )}
                   <div className="min-w-0">
-                    <p className="break-all font-mono text-xs text-white/85">
+                    <p className="break-all text-sm font-medium text-white/85">
                       {row.filename ?? (row.source === "live" ? "Live listen session" : "Upload")}
                     </p>
-                    <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
+                    <p className="mt-1 font-mono text-[11px] tabular-nums text-white/35">
                       {new Date(row.created_at).toLocaleString()}
                     </p>
                   </div>
@@ -95,10 +92,10 @@ export default function History() {
                   <SpecCell label="Min score" value={row.score_min.toFixed(2)} />
                   <span
                     className={cn(
-                      "shrink-0 border px-3 py-1.5 text-center font-mono text-[10px] font-bold uppercase tracking-[0.15em]",
+                      "shrink-0 rounded-md border px-3 py-1.5 text-center text-xs font-semibold",
                       isSpoof
-                        ? "border-rose-400/70 text-rose-300"
-                        : "border-emerald-400/70 text-emerald-300"
+                        ? "border-rose-400/50 bg-rose-400/[0.06] text-rose-300"
+                        : "border-emerald-400/50 bg-emerald-400/[0.06] text-emerald-300"
                     )}
                   >
                     {isSpoof ? "Spoof-like" : "Bonafide-like"}
