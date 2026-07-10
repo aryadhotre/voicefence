@@ -9,7 +9,7 @@ import {
 import { motion, useSpring, useTransform, useReducedMotion } from "motion/react"
 import { liveAnalyzeUrl, type StreamMessage, type StreamScoreMessage } from "@/lib/api"
 import { saveHistory } from "@/lib/history"
-import { Kicker, Ticks, SpecCell } from "@/components/ui/dossier"
+import { Kicker, SpecCell } from "@/components/ui/dossier"
 import { RadialGauge } from "@/components/anim/RadialGauge"
 import { cn } from "@/lib/utils"
 
@@ -245,9 +245,9 @@ export default function LiveListen() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-16 md:px-8">
       <div className="mb-12">
-        <Kicker index="03" label="Live monitor" />
-        <h1 className="mt-6 font-serif text-4xl leading-tight text-white md:text-6xl">
-          Live <em className="italic text-violet-300">Listen.</em>
+        <Kicker label="Live monitor" />
+        <h1 className="mt-6 text-4xl leading-tight text-white md:text-6xl">
+          Live Listen<span className="text-violet-400">.</span>
         </h1>
         <p className="mt-4 max-w-xl text-white/55">
           Start this while you're on a call (put it on speaker near your
@@ -258,31 +258,29 @@ export default function LiveListen() {
       </div>
 
       {callState === "idle" && (
-        <div className="relative flex flex-col items-center gap-6 border border-white/12 bg-white/[0.02] p-12 text-center">
-          <Ticks />
+        <div className="relative flex flex-col items-center gap-6 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-12 text-center">
           <MicRings active={false}>
             <Mic className="h-10 w-10 text-white/60" strokeWidth={1.5} />
           </MicRings>
           <button
             type="button"
             onClick={() => void start()}
-            className="border border-white/25 bg-white/[0.04] px-8 py-3.5 font-mono text-xs uppercase tracking-[0.2em] text-white transition-colors hover:border-violet-400/70 hover:bg-violet-400/10"
+            className="rounded-full bg-white px-8 py-3.5 text-[15px] font-medium text-black transition-colors hover:bg-white/85"
           >
-            Start live listen ●
+            Start live listen
           </button>
-          <p className="max-w-sm font-mono text-[10px] uppercase leading-relaxed tracking-[0.15em] text-white/30">
+          <p className="max-w-sm text-xs leading-relaxed text-white/35">
             Demo endpoint — no auth yet. Local testing on a trusted network only.
           </p>
         </div>
       )}
 
       {callState === "connecting" && (
-        <div className="relative flex flex-col items-center gap-4 border border-white/12 bg-white/[0.02] p-12 text-center">
-          <Ticks />
+        <div className="relative flex flex-col items-center gap-4 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-12 text-center">
           <MicRings active={false}>
             <Mic className="h-10 w-10 animate-pulse text-violet-400 motion-reduce:animate-none" strokeWidth={1.5} />
           </MicRings>
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-white/60">
+          <p className="text-sm font-medium text-white/60">
             Requesting microphone access…
           </p>
         </div>
@@ -290,11 +288,10 @@ export default function LiveListen() {
 
       {(callState === "live" || callState === "ended") && (
         <div className="space-y-6">
-          <div className="relative border border-white/12 bg-[#0b0912]">
-            <Ticks />
+          <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0d0a16]">
             {/* Console header */}
-            <div className="flex items-center justify-between border-b border-white/10 px-6 py-3">
-              <span className="flex items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.3em] text-white/40">
+            <div className="flex items-center justify-between border-b border-white/[0.06] px-6 py-3">
+              <span className="flex items-center gap-2.5 text-xs font-medium uppercase tracking-[0.12em] text-white/40">
                 {callState === "live" ? (
                   <>
                     <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-rose-500 motion-reduce:animate-none" />
@@ -303,7 +300,7 @@ export default function LiveListen() {
                 ) : (
                   <span className="text-white/30">Session ended</span>
                 )}
-                <span className="text-white/25">/ live trust meter</span>
+                <span className="normal-case tracking-normal text-white/25">— live trust meter</span>
               </span>
               <span className="font-mono text-xs tabular-nums text-white/60">
                 {latest ? `${latest.duration_sec.toFixed(0)}s` : "0s"}
@@ -327,8 +324,8 @@ export default function LiveListen() {
                   )}
                   <p
                     className={cn(
-                      "font-mono text-sm uppercase tracking-[0.15em]",
-                      latest ? (isSpoof ? "text-rose-300" : "text-emerald-300") : "text-white/45"
+                      "text-lg font-semibold tracking-tight",
+                      latest ? (isSpoof ? "text-rose-300" : "text-emerald-300") : "text-base font-medium text-white/45"
                     )}
                   >
                     {latest ? (isSpoof ? "Spoof-like" : "Bonafide-like") : "Listening… first score in ~4s"}
@@ -346,9 +343,9 @@ export default function LiveListen() {
             </div>
 
             {callState === "live" && (
-              <div className="border-t border-white/10 px-6 py-4">
+              <div className="border-t border-white/[0.06] px-6 py-4">
                 <LiveWaveform analyser={analyser} />
-                <p className="mt-2 text-center font-mono text-[9px] uppercase tracking-[0.35em] text-white/25">
+                <p className="mt-2 text-center text-[10px] uppercase tracking-[0.2em] text-white/25">
                   Live mic input
                 </p>
               </div>
@@ -357,10 +354,10 @@ export default function LiveListen() {
 
           {history.length > 0 && (
             <div>
-              <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.3em] text-white/35">
+              <p className="mb-2 text-xs font-medium uppercase tracking-[0.12em] text-white/35">
                 Score history this call
               </p>
-              <div className="flex h-24 items-end gap-0.5 overflow-hidden border border-white/10 bg-white/[0.02] p-2">
+              <div className="flex h-24 items-end gap-0.5 overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02] p-2">
                 {history.slice(-72).map((h) => (
                   <motion.div
                     key={h.window_index}
@@ -384,7 +381,7 @@ export default function LiveListen() {
 
           {callState === "ended" && (
             <motion.div
-              className="border border-white/10 bg-white/[0.02] p-4 text-center font-mono text-xs uppercase tracking-[0.15em] text-white/50"
+              className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 text-center text-sm font-medium text-white/50"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
             >
@@ -397,7 +394,7 @@ export default function LiveListen() {
               <button
                 type="button"
                 onClick={stop}
-                className="flex items-center gap-2 border border-rose-400/60 bg-rose-500/10 px-7 py-3 font-mono text-xs uppercase tracking-[0.2em] text-rose-200 transition-colors hover:bg-rose-500/20"
+                className="flex items-center gap-2 rounded-full border border-rose-400/60 bg-rose-500/10 px-7 py-3 text-[15px] font-medium text-rose-200 transition-colors hover:bg-rose-500/20"
               >
                 <PhoneOff className="h-4 w-4" /> Stop
               </button>
@@ -405,9 +402,9 @@ export default function LiveListen() {
               <button
                 type="button"
                 onClick={() => void start()}
-                className="border border-white/25 bg-white/[0.04] px-7 py-3 font-mono text-xs uppercase tracking-[0.2em] text-white transition-colors hover:border-violet-400/70 hover:bg-violet-400/10"
+                className="rounded-full bg-white px-7 py-3 text-[15px] font-medium text-black transition-colors hover:bg-white/85"
               >
-                Start again ●
+                Start again
               </button>
             )}
           </div>
@@ -415,13 +412,13 @@ export default function LiveListen() {
       )}
 
       {callState === "error" && (
-        <div className="flex flex-col items-center gap-4 border border-rose-500/30 bg-rose-500/10 p-12 text-center">
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-12 text-center">
           <AlertTriangle className="h-8 w-8 text-rose-400" />
           <p className="text-sm text-rose-200">{errorMsg}</p>
           <button
             type="button"
             onClick={() => void start()}
-            className="border border-white/20 px-7 py-3 font-mono text-xs uppercase tracking-[0.2em] text-white transition-colors hover:bg-white/10"
+            className="rounded-full border border-white/20 px-7 py-3 text-[15px] font-medium text-white transition-colors hover:bg-white/10"
           >
             Try again
           </button>
@@ -429,7 +426,7 @@ export default function LiveListen() {
       )}
 
       {errorMsg && callState === "live" && (
-        <div className="mt-4 flex items-center gap-2 border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-200">
+        <div className="mt-4 flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-200">
           <AlertTriangle className="h-4 w-4 shrink-0" /> {errorMsg}
         </div>
       )}

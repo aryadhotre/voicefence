@@ -4,7 +4,7 @@ import { motion, useSpring, useReducedMotion, type Variants } from "motion/react
 import { analyzeFile, ApiError, type AnalyzeResponse } from "@/lib/api"
 import { saveHistory } from "@/lib/history"
 import { consumePendingSharedAudio, MAX_SHARE_UPLOAD_MB } from "@/lib/shareTarget"
-import { Kicker, Ticks, SpecCell } from "@/components/ui/dossier"
+import { Kicker, SpecCell } from "@/components/ui/dossier"
 import { RadialGauge } from "@/components/anim/RadialGauge"
 import { AnimatedNumber } from "@/components/anim/AnimatedNumber"
 import { WaveformLoader } from "@/components/anim/WaveformLoader"
@@ -85,22 +85,6 @@ const spoofBadge: Variants = {
       x: { duration: 0.45, delay: 0.12, ease: "easeOut" },
     },
   },
-}
-
-/** Corner L-brackets for the dropzone — schematic "place sample here" zone. */
-function Brackets({ active }: { active: boolean }) {
-  const cls = cn(
-    "absolute h-6 w-6 border-white/25 transition-colors duration-300",
-    active && "border-violet-400"
-  )
-  return (
-    <span aria-hidden className="pointer-events-none absolute inset-3">
-      <span className={cn(cls, "left-0 top-0 border-l-2 border-t-2")} />
-      <span className={cn(cls, "right-0 top-0 border-r-2 border-t-2")} />
-      <span className={cn(cls, "bottom-0 left-0 border-b-2 border-l-2")} />
-      <span className={cn(cls, "bottom-0 right-0 border-b-2 border-r-2")} />
-    </span>
-  )
 }
 
 export default function Analyze() {
@@ -184,9 +168,9 @@ export default function Analyze() {
   return (
     <div className="mx-auto max-w-4xl px-6 py-16 md:px-8">
       <div className="mb-12">
-        <Kicker index="02" label="Upload analysis" />
-        <h1 className="mt-6 font-serif text-4xl leading-tight text-white md:text-6xl">
-          Analyze a <em className="italic text-violet-300">voice note.</em>
+        <Kicker label="Upload analysis" />
+        <h1 className="mt-6 text-4xl leading-tight text-white md:text-6xl">
+          Analyze a voice note<span className="text-violet-400">.</span>
         </h1>
         <p className="mt-4 max-w-xl text-white/55">
           Drop a WhatsApp voice note, phone recording, or any audio file.
@@ -209,12 +193,11 @@ export default function Analyze() {
         onDrop={onDrop}
         onClick={() => inputRef.current?.click()}
         className={cn(
-          "relative flex cursor-pointer flex-col items-center justify-center gap-3 border border-white/12 bg-white/[0.02] px-6 py-16 text-center transition-colors",
-          dragging ? "bg-violet-400/10" : "hover:bg-white/[0.04]",
+          "relative flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed bg-white/[0.02] px-6 py-16 text-center transition-colors",
+          dragging ? "border-violet-400/70 bg-violet-400/10" : "border-white/15 hover:border-white/30 hover:bg-white/[0.04]",
           status === "loading" && "pointer-events-none"
         )}
       >
-        <Brackets active={dragging} />
         <input
           ref={inputRef}
           type="file"
@@ -230,32 +213,30 @@ export default function Analyze() {
             transition={{ type: "spring", stiffness: 260, damping: 18 }}
           >
             <WaveformLoader />
-            <p className="font-mono text-xs uppercase tracking-[0.2em] text-white/60">
+            <p className="text-sm font-medium text-white/60">
               Analyzing “{fileName}”…
             </p>
           </motion.div>
         ) : (
           <>
             <UploadCloud className="h-7 w-7 text-white/35" strokeWidth={1.5} />
-            <p className="font-mono text-xs uppercase tracking-[0.2em] text-white">
-              Drop sample here — or click to browse
+            <p className="text-[15px] font-medium text-white">
+              Drop a file here — or click to browse
             </p>
-            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/30">
-              Max 25MB by default
-            </p>
+            <p className="text-xs text-white/35">Max 25MB by default</p>
           </>
         )}
       </motion.div>
 
       {status === "error" && (
         <motion.div
-          className="mt-6 flex items-start gap-3 border border-rose-500/30 bg-rose-500/10 p-4"
+          className="mt-6 flex items-start gap-3 rounded-xl border border-rose-500/30 bg-rose-500/10 p-4"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
         >
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-400" />
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.2em] text-rose-200">Analysis failed</p>
+            <p className="text-sm font-semibold text-rose-200">Analysis failed</p>
             <p className="mt-1 text-sm text-rose-200/70">{error}</p>
           </div>
         </motion.div>
@@ -263,20 +244,18 @@ export default function Analyze() {
 
       {status === "done" && result && (
         <motion.div
-          className="relative mt-10 border border-white/12 bg-[#0b0912]"
+          className="relative mt-10 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0d0a16]"
           variants={resultsContainer}
           initial="hidden"
           animate="show"
         >
-          <Ticks />
-
           {/* Report header */}
-          <motion.div variants={resultItem} className="border-b border-white/10 p-6 md:p-8">
+          <motion.div variants={resultItem} className="border-b border-white/[0.06] p-6 md:p-8">
             <div className="flex flex-wrap items-baseline justify-between gap-3">
-              <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/35">
+              <span className="text-xs font-medium uppercase tracking-[0.12em] text-white/35">
                 Analysis report
               </span>
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/25">
+              <span className="font-mono text-[11px] text-white/25">
                 RawNet2 · codec-aug checkpoint
               </span>
             </div>
@@ -289,23 +268,23 @@ export default function Analyze() {
           </motion.div>
 
           {/* Verdict + gauge */}
-          <div className="grid gap-0 border-b border-white/10 md:grid-cols-2">
+          <div className="grid gap-0 border-b border-white/[0.06] md:grid-cols-2">
             <motion.div
               variants={isSpoof ? spoofBadge : bonafideBadge}
-              className="flex items-center justify-center border-b border-white/10 p-8 md:border-b-0 md:border-r"
+              className="flex items-center justify-center border-b border-white/[0.06] p-8 md:border-b-0 md:border-r"
             >
               <div
                 className={cn(
-                  "border-2 px-6 py-5 text-center",
+                  "rounded-xl border px-7 py-5 text-center",
                   isSpoof
-                    ? "-rotate-2 border-rose-400/70 text-rose-300"
-                    : "border-emerald-400/70 text-emerald-300"
+                    ? "border-rose-400/60 bg-rose-400/[0.06] text-rose-300"
+                    : "border-emerald-400/60 bg-emerald-400/[0.06] text-emerald-300"
                 )}
               >
-                <p className="font-mono text-[10px] uppercase tracking-[0.35em] opacity-60">
+                <p className="text-[11px] font-medium uppercase tracking-[0.14em] opacity-60">
                   Verdict
                 </p>
-                <p className="mt-1 whitespace-nowrap font-mono text-xl font-bold uppercase tracking-[0.12em] md:text-2xl">
+                <p className="mt-1 whitespace-nowrap text-2xl font-semibold tracking-tight md:text-3xl">
                   {isSpoof ? "Spoof-like" : "Bonafide-like"}
                 </p>
               </div>
@@ -322,8 +301,8 @@ export default function Analyze() {
           </div>
 
           {/* Window timeline */}
-          <motion.div variants={resultItem} className="border-b border-white/10 p-6 md:p-8">
-            <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.3em] text-white/35">
+          <motion.div variants={resultItem} className="border-b border-white/[0.06] p-6 md:p-8">
+            <p className="mb-3 text-xs font-medium uppercase tracking-[0.12em] text-white/35">
               Per-window score timeline
             </p>
             <WindowChart scores={result.window_scores} threshold={result.threshold} />
@@ -336,7 +315,7 @@ export default function Analyze() {
 
           <motion.p
             variants={resultItem}
-            className="p-6 font-mono text-[11px] leading-relaxed text-white/40 md:px-8"
+            className="p-6 text-xs leading-relaxed text-white/40 md:px-8"
           >
             {result.disclaimer}
           </motion.p>
@@ -374,7 +353,7 @@ function ScoreGauge({ score, threshold, isSpoof }: { score: number; threshold: n
         duration={1.1}
         className={cn("font-mono text-3xl font-bold", isSpoof ? "text-rose-200" : "text-emerald-200")}
       />
-      <span className="mt-1 font-mono text-[9px] uppercase tracking-[0.3em] text-white/35">
+      <span className="mt-1 text-[9px] uppercase tracking-[0.2em] text-white/35">
         mean score
       </span>
     </RadialGauge>
@@ -389,7 +368,7 @@ function WindowChart({ scores, threshold }: { scores: number[]; threshold: numbe
   const zeroPct = ((max - threshold) / range) * 100
 
   return (
-    <div className="relative h-40 border border-white/10 bg-white/[0.02] p-3">
+    <div className="relative h-40 rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
       <div
         className="absolute left-3 right-3 border-t border-dashed border-white/30"
         style={{ top: `${zeroPct}%` }}
