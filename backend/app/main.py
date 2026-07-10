@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -65,6 +66,17 @@ def create_app() -> FastAPI:
     def health() -> dict:
         loaded = hasattr(app.state, "model_service")
         return {"status": "ok" if loaded else "starting"}
+
+    # TEMPORARY — debugging the CORS_ORIGINS mismatch reported after the
+    # "updated" Render env var still got "Disallowed CORS origin". repr()
+    # so invisible characters (trailing space, trailing slash) are visible.
+    # Remove this route once the mismatch is found.
+    @app.get("/debug/cors-check")
+    def debug_cors_check() -> dict:
+        return {
+            "raw_env_repr": repr(os.environ.get("CORS_ORIGINS")),
+            "parsed_cors_origins": settings.cors_origins,
+        }
 
     return app
 
