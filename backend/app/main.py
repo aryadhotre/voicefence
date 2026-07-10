@@ -57,6 +57,10 @@ def create_app() -> FastAPI:
     app.include_router(analyze.router)
     app.include_router(stream.router)
 
+    @app.get("/")
+    def root() -> dict:
+        return {"service": "Voicefence API", "docs": "/docs", "status": "ok"}
+
     @app.get("/health")
     def health() -> dict:
         loaded = hasattr(app.state, "model_service")
