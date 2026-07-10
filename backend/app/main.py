@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -65,6 +66,15 @@ def create_app() -> FastAPI:
     def health() -> dict:
         loaded = hasattr(app.state, "model_service")
         return {"status": "ok" if loaded else "starting"}
+
+    # TEMPORARY — re-checking CORS_ORIGINS after a reported trailing-slash
+    # fix that didn't change the "Disallowed CORS origin" behavior.
+    @app.get("/debug/cors-check")
+    def debug_cors_check() -> dict:
+        return {
+            "raw_env_repr": repr(os.environ.get("CORS_ORIGINS")),
+            "parsed_cors_origins": settings.cors_origins,
+        }
 
     return app
 
