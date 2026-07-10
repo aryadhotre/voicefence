@@ -29,7 +29,7 @@ function latticePositions(): [number, number, number][] {
 }
 
 // Muted violet-greys; index 13 is the lattice center (0,0,0) — the core.
-const SHELL_COLORS = ["#16121f", "#1c1729", "#241d35"]
+const SHELL_COLORS = ["#2b2340", "#352a4d", "#3f3260"]
 
 function Cluster({ animate }: { animate: boolean }) {
   const group = useRef<Group>(null)
@@ -49,17 +49,17 @@ function Cluster({ animate }: { animate: boolean }) {
           <RoundedBox key={i} args={[1, 1, 1]} radius={0.09} smoothness={3} position={p}>
             {isCore ? (
               <meshStandardMaterial
-                color="#7c5cff"
+                color="#8b6cff"
                 emissive="#7c5cff"
-                emissiveIntensity={1.4}
-                roughness={0.35}
+                emissiveIntensity={2.2}
+                roughness={0.3}
                 metalness={0.1}
               />
             ) : (
               <meshStandardMaterial
                 color={SHELL_COLORS[i % SHELL_COLORS.length]}
-                roughness={0.42}
-                metalness={0.5}
+                roughness={0.35}
+                metalness={0.45}
               />
             )}
           </RoundedBox>
@@ -92,11 +92,12 @@ export default function HeroScene({ animate }: { animate: boolean }) {
         style={{ background: "transparent" }}
         aria-hidden
       >
-        <ambientLight intensity={0.45} />
+        <ambientLight intensity={0.8} />
         {/* Key / fill / violet rim — reads premium without an HDR fetch. */}
-        <directionalLight position={[6, 8, 4]} intensity={1.6} color="#ffffff" />
-        <directionalLight position={[-6, -2, -4]} intensity={0.5} color="#8b7cf6" />
-        <pointLight position={[0, 0, 0]} intensity={2.2} color="#7c5cff" distance={6} />
+        <directionalLight position={[6, 8, 4]} intensity={2.8} color="#ffffff" />
+        <directionalLight position={[-6, -2, -4]} intensity={1.1} color="#8b7cf6" />
+        <directionalLight position={[0, -6, 6]} intensity={0.6} color="#c4b5fd" />
+        <pointLight position={[0, 0, 0]} intensity={5} color="#7c5cff" distance={8} />
         <Float
           enabled={animate}
           speed={1.4}
