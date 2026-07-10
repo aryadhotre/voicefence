@@ -173,33 +173,7 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Faint engineering-grid backdrop for sections. */
-.bg-blueprint {
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-  background-size: 72px 72px;
-}
-
 /* Hairline rule used between editorial sections. */
 .rule {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-/* Marquee (see components/anim/Marquee.tsx): the track holds two copies of
-   its content, so -50% loops seamlessly. */
-@keyframes marquee {
-  to {
-    transform: translateX(calc(-50% - 0.5rem));
-  }
-}
-
-.marquee-track {
-  animation: marquee linear infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .marquee-track {
-    animation: none;
-  }
 }
