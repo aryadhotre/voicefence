@@ -7,7 +7,12 @@ python-multipart==0.0.20
 # together during ML development (see ../ml/pyproject.toml for the
 # unpinned range; the ml package itself is installed separately in the
 # Dockerfile with --no-deps so these exact pins are what's actually used).
-torch==2.12.1
+#
+# torch is NOT listed here — it's installed in the Dockerfile from
+# PyTorch's own CPU-only wheel index (see Dockerfile step 1a). Listing
+# `torch==2.12.1` here too is harmless (PEP 440 `==` without a local
+# segment matches the `+cpu` local version), but omitting it keeps this
+# file honest about where torch actually comes from.
 numpy==2.4.6
 soundfile==0.14.0
 soxr==1.1.0

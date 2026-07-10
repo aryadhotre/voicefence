@@ -239,6 +239,20 @@ This is a monorepo — `backend/` imports the sibling `ml/` package, so the
    is enough; the ~200MB checkpoint plus PyTorch's own footprint wants at
    least 1GB RAM to be comfortable.
 
+   **RAM footprint gotcha (caused a real OOM kill on this project):** plain
+   `pip install torch` on Linux does **not** get you a CPU-only build —
+   PyPI's default linux wheel for torch is CUDA-enabled and pulls in
+   `cuda-toolkit`, `nvidia-cudnn`, `nvidia-nccl`, `triton`, etc. (multiple
+   GB of GPU runtime libs, useless on Render's GPU-less instances) and
+   inflates the process's baseline memory footprint well past what a
+   CPU-only build needs. The Dockerfile now installs torch explicitly from
+   PyTorch's own CPU wheel index (`https://download.pytorch.org/whl/cpu`)
+   instead, which has zero CUDA dependencies. Even with this fix, the
+   512MB **Free** tier is cutting it close (checkpoint + torch + uvicorn
+   baseline) — prefer at least the 512MB **Starter** tier's neighbor with
+   more headroom, or size up if you see memory warnings in Render's
+   metrics after deploying.
+
 No build or start command fields to fill in separately — the Dockerfile
 defines both (`pip install` steps at build time, `uvicorn` at container
 start).

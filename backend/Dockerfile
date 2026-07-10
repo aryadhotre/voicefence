@@ -11,10 +11,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg \
 
 WORKDIR /app
 
-# 1. Backend's own pinned deps first (better Docker layer caching — this
+# 1a. Torch, installed separately from PyTorch's own CPU-only wheel index.
+#    Plain `pip install torch` from PyPI is NOT a CPU wheel on Linux — it
+#    pulls in cuda-toolkit, nvidia-cudnn, nvidia-nccl, triton, etc. (several
+#    GB of CUDA runtime libs, irrelevant on Render's GPU-less instances) and
+#    was the actual cause of the 512MB OOM kill. The +cpu wheel below has
+#    zero CUDA dependencies and is ~1/3 the size.
+RUN pip install --no-cache-dir torch==2.12.1+cpu \
+    --index-url https://download.pytorch.org/whl/cpu
+
+# 1b. Backend's remaining pinned deps (better Docker layer caching — this
 #    layer only rebuilds when requirements.txt changes, not on every code
-#    edit). Plain PyPI `torch==...` resolves to the CPU wheel, which is what
-#    Render's (GPU-less) instances need.
+#    edit).
 COPY backend/requirements.txt /app/backend/requirements.txt
 RUN pip install --no-cache-dir -r /app/backend/requirements.txt
 
