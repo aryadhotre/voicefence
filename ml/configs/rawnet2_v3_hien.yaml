@@ -1,0 +1,56 @@
+# v3: codec-augmented ASVspoof LA + synthetic hi-en TRAIN split folded in.
+#
+# Identical to rawnet2_asvspoof_la.yaml (the codec-aug config) except:
+#   * out_dir -> runs/rawnet2_v3_hien (does NOT touch runs/rawnet2_codecaug,
+#     which stays intact for the three-way comparison)
+#   * one extra_train_source added: the held-out-safe hi-en TRAIN split
+#     (data/synth_hi_en, protocol synth_hi_en_train.protocol.txt). The
+#     matching synth_hi_en_test.protocol.txt is deliberately NOT trained on —
+#     it is the honest held-out eval for whether folding in hi-en closed the
+#     cross-TTS-engine gap.
+#
+# Everything else (model, class_weights, lr, epochs, samples) is kept
+# identical to the codec-aug run so the comparison isolates the effect of the
+# new data.
+
+seed: 1234
+out_dir: "runs/rawnet2_v3_hien"
+
+data:
+  asvspoof_root: "D:/datasets/ASVspoof2019/LA"   # <-- EDIT ME
+  samples: 64600            # ~4.04 s @ 16 kHz
+  # Codec-augmented copies of the train set (same protocol, different roots).
+  extra_train_sources:
+    - protocol: "D:/datasets/ASVspoof2019/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt"
+      audio_root: "data/codec_train/opus6k"
+    - protocol: "D:/datasets/ASVspoof2019/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt"
+      audio_root: "data/codec_train/amr475"
+    - protocol: "D:/datasets/ASVspoof2019/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt"
+      audio_root: "data/codec_train/mulaw"
+    # NEW: synthetic hi-en TRAIN split (parler spoofs + CVHI/LS bonafide).
+    # Uses only the 4,800-utt train partition; the 1,200-utt test partition
+    # is held out for evaluation.
+    - protocol: "data/synth_hi_en/synth_hi_en_train.protocol.txt"
+      audio_root: "data/synth_hi_en"
+  extra_dev_sources: []
+
+model:
+  sinc_filters: 20
+  sinc_kernel: 1025
+  sinc_trainable: false      # fixed mel-spaced bank (RawNet2 CM default)
+  gru_hidden: 1024
+  gru_layers: 3
+  fc_hidden: 1024
+
+train:
+  batch_size: 8              # fits ~4 GB VRAM; raise to 32 on 8 GB+
+  eval_batch_size: 16
+  epochs: 60
+  lr: 0.0001
+  weight_decay: 0.0001
+  class_weights: [0.1, 0.9]  # [spoof, bonafide]; LA train ≈ 9:1 spoof:bonafide
+  amp: true
+  num_workers: 4             # lower to 0-2 if Windows DataLoader issues
+  # Quick-run caps (null = full set):
+  max_train_items: null
+  max_dev_items: null
