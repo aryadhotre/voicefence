@@ -13,9 +13,14 @@ from functools import lru_cache
 from pathlib import Path
 
 # backend/app/config.py -> backend/app -> backend -> repo root -> ml/...
+# Points at the current production checkpoint (rawnet2_v3_hien). On an
+# ephemeral deploy this file won't exist, so the server fetches it from
+# MODEL_CHECKPOINT_URL and caches it here; the run-specific name also means a
+# checkpoint bump (new URL/hash) never collides with a previously-cached file
+# from an older run on a persistent disk — it downloads the new one.
 _DEFAULT_CHECKPOINT = (
     Path(__file__).resolve().parent.parent.parent
-    / "ml" / "runs" / "rawnet2_codecaug" / "best.pt"
+    / "ml" / "runs" / "rawnet2_v3_hien" / "best.pt"
 )
 
 

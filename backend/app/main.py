@@ -63,8 +63,18 @@ def create_app() -> FastAPI:
 
     @app.get("/health")
     def health() -> dict:
-        loaded = hasattr(app.state, "model_service")
-        return {"status": "ok" if loaded else "starting"}
+        ms = getattr(app.state, "model_service", None)
+        if ms is None:
+            return {"status": "starting"}
+        # Expose which checkpoint is live so a deploy can be verified against
+        # the intended weights (sha256 is authoritative; run/epoch are for humans).
+        return {
+            "status": "ok",
+            "checkpoint_run": ms.checkpoint_run,
+            "checkpoint_epoch": ms.checkpoint_epoch,
+            "checkpoint_sha256": ms.checkpoint_sha256,
+            "threshold": ms.threshold,
+        }
 
     return app
 

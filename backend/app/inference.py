@@ -97,13 +97,19 @@ class ModelService:
         self.model, ck = load_checkpoint(path, self.device)
         self.samples = int(ck["config"]["data"]["samples"])
         self.threshold = float(ck.get("eer_threshold", 0.0))
+        # Identify exactly which checkpoint is live, so /health can confirm a
+        # deploy is serving the intended weights (byte-for-byte via sha256).
+        self.checkpoint_sha256 = _sha256sum(path)
+        self.checkpoint_epoch = ck.get("epoch")
+        self.checkpoint_run = ck.get("config", {}).get("out_dir")
         # Optimizer/scaler state is only needed for --resume during training,
         # not for inference — drop the references to keep the serving
         # process's memory footprint down.
         ck.pop("optimizer", None)
         ck.pop("scaler", None)
         logger.info(
-            "Model ready: device=%s samples=%d threshold=%+.3f",
+            "Model ready: run=%s epoch=%s sha256=%s device=%s samples=%d threshold=%+.3f",
+            self.checkpoint_run, self.checkpoint_epoch, self.checkpoint_sha256[:12],
             self.device, self.samples, self.threshold,
         )
 
