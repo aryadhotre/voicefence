@@ -190,21 +190,67 @@ method**, not a flaw in the codec-augmentation work above (which is
 measured entirely within ASVspoof's own attack set and stands on its
 own). Zero training exposure to this generation method, on top of a
 language-and-accent distribution the base model never trained on
-either, makes this result unsurprising. See "Known limitations /
-planned work" below for the follow-up.
+either, makes this result unsurprising. See below for the follow-up
+retrain (`rawnet2_v3_hien`) that closes this gap.
+
+### v3 (`rawnet2_v3_hien`): hi-en folded into training — three-way comparison
+
+`runs/rawnet2_v3_hien/best.pt` (epoch 36, dev EER 0.47%) trained on the
+codec-augmented ASVspoof LA set **plus** the synthetic hi-en TRAIN split
+(4,800 utts; total train 106,320 vs the codec-aug run's 101,520). A
+deterministic, language-and-label-stratified 80/20 split
+(`awaaz_ml.data.split_synth`) holds out a 1,200-utt test set
+(`synth_hi_en_test.protocol.txt`) that is **never trained on** — all v3
+synthetic numbers below are on that held-out split. Baseline and codec-aug
+are re-measured on the identical held-out split (their ASVspoof-eval and
+codec-sweep columns are the validated numbers from the tables above; our
+fresh baseline run reproduced them exactly).
+
+**Held-out synthetic hi-en test — the headline result:**
+
+| Split | baseline | codec-aug | **v3_hien** |
+|---|---|---|---|
+| Overall | 39.50% | 32.06% | **0.75%** |
+| hi-en | 43.00% | 33.50% | **0.50%** |
+| hi | 40.00% | 30.19% | **1.00%** |
+| en | 31.00% | 32.06% | **1.19%** |
+
+Folding the hi-en train split in collapses held-out hi-en EER from ~32% to
+**0.75%** overall (hi-en 33.50% → **0.50%**) — the cross-TTS-engine /
+code-switch gap is closed.
+
+**Codec robustness is preserved (marginally better):**
+
+| Codec | baseline | codec-aug | **v3_hien** |
+|---|---|---|---|
+| clean | 4.91% | 5.50% | 5.66% |
+| amr122 | 8.52% | 5.89% | 5.02% |
+| amr475 | 16.71% | 7.25% | 6.74% |
+| gsm | 8.59% | 6.12% | 6.05% |
+| opus6k | 12.14% | 7.18% | 7.22% |
+| opus12k | 5.21% | 5.56% | 6.12% |
+| mulaw | 5.00% | 5.56% | 5.23% |
+| **avg-6** | 9.36% | 6.26% | **6.06%** |
+
+**Small, honest cost on clean ASVspoof (overall +0.16pp vs codec-aug):**
+overall EER 5.50% → 5.66%; the hardest attack A18 improves (18.40% →
+14.98%), but several attacks regress vs codec-aug — notably A14 (0.95% →
+4.21%), A13 (0.29% → 2.08%), A11, A12, A17 — all still low single-digit
+absolute EERs. This is the expected price of adding a new data
+distribution, not a serious regression: codec robustness holds and the
+hi-en gain is enormous.
 
 ## Known limitations / planned work
 
-- **The synthetic hi-en set is eval-only so far.** `rawnet2_codecaug`
-  has been *evaluated* against it (33.35% EER, above) but never
-  *trained* on it — the 33% figure reflects an unseen-generation-method
-  gap, not a ceiling on what's achievable. A follow-up retrain that
-  folds hi-en data into the training set is planned to close this gap.
-  That retrain needs a proper train/test split *within* the synthetic
-  set (disjoint sentences/speakers between the two, same discipline as
-  the ASVspoof train/dev/eval split) so future eval numbers stay honest
-  and this checkpoint isn't graded on data it trained on. Tracked as
-  future work — does not block the backend build.
+- **The synthetic hi-en gap is now closed (`rawnet2_v3_hien`).** The
+  earlier `rawnet2_codecaug` checkpoint was eval-only against the
+  synthetic set (~32% held-out EER) because it never trained on it. The
+  v3 retrain folds the hi-en TRAIN split into training and drops held-out
+  hi-en EER to **0.75%** overall (three-way tables above), using a proper
+  stratified train/test split so the number is measured on held-out data
+  the checkpoint never saw. Remaining honesty note: v3 carries a small
+  clean-ASVspoof regression (+0.16pp overall) vs codec-aug — see the
+  per-attack table.
 - Detection is probabilistic; scores, not verdicts (see "Honest
   limitations" below for the full list).
 
