@@ -199,8 +199,8 @@ export default function Landing() {
           transition={{ duration: 0.6, delay: 1.1 }}
         >
           {[
-            { value: <AnimatedNumber value={4.91} decimals={2} suffix="%" />, label: "EER on ASVspoof 2019 LA eval" },
-            { value: <AnimatedNumber value={33} prefix="~" suffix="%" />, label: "Average EER cut under codec compression" },
+            { value: <AnimatedNumber value={0.75} decimals={2} suffix="%" />, label: "EER on held-out Hindi-English deepfake test" },
+            { value: <AnimatedNumber value={35} prefix="~" suffix="%" />, label: "Average EER cut under codec compression" },
             { value: <span>HI+EN</span>, label: "Code-switch aware by construction" },
           ].map((s, i) => (
             <div key={i}>

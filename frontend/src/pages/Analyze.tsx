@@ -256,7 +256,7 @@ export default function Analyze() {
                 Analysis report
               </span>
               <span className="font-mono text-[11px] text-white/25">
-                RawNet2 · codec-aug checkpoint
+                RawNet2 · v3 hi-en checkpoint
               </span>
             </div>
             <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-5 md:grid-cols-4">

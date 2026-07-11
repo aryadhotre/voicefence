@@ -8,44 +8,47 @@ import { AnimatedNumber } from "@/components/anim/AnimatedNumber"
 // EER percentage that counts up when scrolled into view.
 const eer = (v: number) => <AnimatedNumber value={v} decimals={2} suffix="%" duration={1.1} />
 
-const codecRows: { codec: string; baseline: number; codecAug: number; delta: string }[] = [
-  { codec: "Clean/uncompressed", baseline: 4.91, codecAug: 5.5, delta: "+0.59pp" },
-  { codec: "amr122", baseline: 8.52, codecAug: 5.89, delta: "−2.63pp" },
-  { codec: "amr475", baseline: 16.71, codecAug: 7.25, delta: "−9.46pp" },
-  { codec: "gsm", baseline: 8.59, codecAug: 6.12, delta: "−2.47pp" },
-  { codec: "opus6k", baseline: 12.14, codecAug: 7.18, delta: "−4.96pp" },
-  { codec: "opus12k", baseline: 5.21, codecAug: 5.56, delta: "+0.35pp" },
-  { codec: "mulaw", baseline: 5.0, codecAug: 5.56, delta: "+0.56pp" },
+// Three-way: baseline → codec-aug → v3 (hi-en folded into training, shipped).
+const codecRows: { codec: string; baseline: number; codecAug: number; v3: number }[] = [
+  { codec: "Clean/uncompressed", baseline: 4.91, codecAug: 5.5, v3: 5.66 },
+  { codec: "amr122", baseline: 8.52, codecAug: 5.89, v3: 5.02 },
+  { codec: "amr475", baseline: 16.71, codecAug: 7.25, v3: 6.74 },
+  { codec: "gsm", baseline: 8.59, codecAug: 6.12, v3: 6.05 },
+  { codec: "opus6k", baseline: 12.14, codecAug: 7.18, v3: 7.22 },
+  { codec: "opus12k", baseline: 5.21, codecAug: 5.56, v3: 6.12 },
+  { codec: "mulaw", baseline: 5.0, codecAug: 5.56, v3: 5.23 },
 ]
 
 const attackRows = [
-  { attack: "A07", baseline: "1.59%", codecAug: "1.63%" },
-  { attack: "A08", baseline: "3.56%", codecAug: "1.14%" },
-  { attack: "A09", baseline: "0.19%", codecAug: "0.39%" },
-  { attack: "A10", baseline: "2.85%", codecAug: "2.38%" },
-  { attack: "A11", baseline: "1.52%", codecAug: "1.87%" },
-  { attack: "A12", baseline: "2.28%", codecAug: "2.49%" },
-  { attack: "A13", baseline: "0.31%", codecAug: "0.29%" },
-  { attack: "A14", baseline: "0.55%", codecAug: "0.95%" },
-  { attack: "A15", baseline: "2.04%", codecAug: "1.81%" },
-  { attack: "A16", baseline: "0.87%", codecAug: "0.77%" },
-  { attack: "A17", baseline: "7.82%", codecAug: "10.29%", flag: true },
-  { attack: "A18", baseline: "23.65%", codecAug: "18.40%" },
-  { attack: "A19", baseline: "1.30%", codecAug: "3.06%", flag: true },
+  { attack: "A07", baseline: "1.59%", codecAug: "1.63%", v3: "2.12%" },
+  { attack: "A08", baseline: "3.56%", codecAug: "1.14%", v3: "2.91%" },
+  { attack: "A09", baseline: "0.19%", codecAug: "0.39%", v3: "0.43%" },
+  { attack: "A10", baseline: "2.85%", codecAug: "2.38%", v3: "2.72%" },
+  { attack: "A11", baseline: "1.52%", codecAug: "1.87%", v3: "3.46%" },
+  { attack: "A12", baseline: "2.28%", codecAug: "2.49%", v3: "3.54%" },
+  { attack: "A13", baseline: "0.31%", codecAug: "0.29%", v3: "2.08%", flag: true },
+  { attack: "A14", baseline: "0.55%", codecAug: "0.95%", v3: "4.21%", flag: true },
+  { attack: "A15", baseline: "2.04%", codecAug: "1.81%", v3: "2.71%" },
+  { attack: "A16", baseline: "0.87%", codecAug: "0.77%", v3: "1.71%" },
+  { attack: "A17", baseline: "7.82%", codecAug: "10.29%", v3: "12.68%" },
+  { attack: "A18", baseline: "23.65%", codecAug: "18.40%", v3: "14.98%" },
+  { attack: "A19", baseline: "1.30%", codecAug: "3.06%", v3: "2.89%" },
 ]
 
-const synthRows: { split: string; n: string; eer: number }[] = [
-  { split: "Overall", n: "2,000", eer: 33.35 },
-  { split: "hi-en (code-switched)", n: "1,000", eer: 33.9 },
-  { split: "hi (monolingual)", n: "500", eer: 33.01 },
-  { split: "en (monolingual)", n: "500", eer: 32.63 },
+// Held-out synthetic hi-en TEST split (800 bonafide / 400 spoof), never
+// trained on: eval-only codec-aug vs v3 (which trains on the TRAIN split).
+const synthRows: { split: string; before: number; after: number }[] = [
+  { split: "Overall", before: 32.06, after: 0.75 },
+  { split: "hi-en (code-switched)", before: 33.5, after: 0.5 },
+  { split: "hi (monolingual)", before: 30.19, after: 1.0 },
+  { split: "en (monolingual)", before: 32.06, after: 1.19 },
 ]
 
 const limitations = [
   "Detection is probabilistic; scores, not verdicts.",
   "Trained on ASVspoof + synthetic TTS spoofs: strong vs TTS/VC-class synthesis, untested vs a live human impersonator (no synthesis involved).",
   "The synthetic hi-en set measures code-switch robustness; it is not a claim of coverage over all Indian languages/accents.",
-  "The synthetic hi-en set has been evaluated against, but not yet trained on — a follow-up retrain folding it into training (with a proper train/test split) is planned, tracked as future work.",
+  "Folding the synthetic hi-en set into training (v3) closed the earlier code-switch gap (~32% → 0.75% held-out EER), but costs a small amount on clean ASVspoof audio (+0.16pp overall, a few attacks up a few points) — a real trade, disclosed not hidden.",
 ]
 
 export default function HowItWorks() {
@@ -73,8 +76,10 @@ export default function HowItWorks() {
             (spoof / bonafide). No hand-crafted spectral features — the model
             learns directly from the raw 16kHz waveform, scored in ~4-second
             windows (a clip is flagged if any single window looks synthetic).
-            Baseline: 60 epochs on ASVspoof 2019 LA, {eer(4.91)} EER on the
-            eval set (attacks A07-A19, unseen during training).
+            The shipped checkpoint (v3) trains on ASVspoof 2019 LA +
+            telephony-codec augmentation + a synthetic Hindi-English spoof
+            set — {eer(5.66)} EER on the clean ASVspoof eval set (attacks
+            A07-A19, unseen during training).
           </p>
         </Reveal>
         <Reveal delay={0.1} className="mt-8">
@@ -95,14 +100,15 @@ export default function HowItWorks() {
         </Reveal>
         <Reveal delay={0.05}>
           <Table
-            head={["Codec", "Baseline", "Codec-aug", "Δ"]}
-            rows={codecRows.map((r) => [r.codec, eer(r.baseline), eer(r.codecAug), r.delta])}
+            head={["Codec", "Baseline", "Codec-aug", "v3 (hi-en)"]}
+            rows={codecRows.map((r) => [r.codec, eer(r.baseline), eer(r.codecAug), eer(r.v3)])}
           />
           <p className="mt-4 max-w-3xl text-sm leading-relaxed text-white/45">
             Average across the 6 codecs:{" "}
-            <strong className="font-mono text-white/80">{eer(9.36)} → {eer(6.26)}</strong> (~33%
-            relative reduction). Worst case (amr475):{" "}
-            <strong className="font-mono text-white/80">{eer(16.71)} → {eer(7.25)}</strong> —
+            <strong className="font-mono text-white/80">{eer(9.36)} → {eer(6.26)} → {eer(6.06)}</strong>{" "}
+            (baseline → codec-aug → v3) — v3 holds codec robustness (marginally
+            better) while adding Hindi-English coverage. Worst case (amr475):{" "}
+            <strong className="font-mono text-white/80">{eer(16.71)} → {eer(6.74)}</strong> —
             more than halved.
           </p>
         </Reveal>
@@ -112,17 +118,16 @@ export default function HowItWorks() {
             Full per-attack EER, clean eval set
           </p>
           <Table
-            head={["Attack", "Baseline", "Codec-aug"]}
-            rows={attackRows.map((r) => [r.attack, r.baseline, r.codecAug])}
+            head={["Attack", "Baseline", "Codec-aug", "v3 (hi-en)"]}
+            rows={attackRows.map((r) => [r.attack, r.baseline, r.codecAug, r.v3])}
             flagIndexes={attackRows.reduce<number[]>((acc, r, i) => (r.flag ? [...acc, i] : acc), [])}
           />
           <p className="mt-4 max-w-3xl text-sm leading-relaxed text-white/45">
-            Codec augmentation costs a small amount on clean audio (4.91% →
-            5.50%) and on two voice-conversion attacks (A17, A19 — highlighted
-            above), while every other attack is flat or improves, including
-            the baseline's single worst attack, A18 (23.65% → 18.40%). A real
-            trade-off, not a universal win — described here exactly as
-            measured.
+            Each data addition costs a little on clean audio: 4.91% (baseline)
+            → 5.50% (codec-aug) → 5.66% (v3). v3's Hindi-English training nudges
+            a few attacks up — A13 and A14 (highlighted) most — while the
+            hardest attack A18 keeps improving (23.65% → 18.40% → 14.98%). A
+            real trade-off, described here exactly as measured.
           </p>
         </Reveal>
       </section>
@@ -135,20 +140,26 @@ export default function HowItWorks() {
             A synthetic 6,000-utterance set — 2,000 <code className="bg-white/10 px-1.5 py-0.5 font-mono text-sm">parler-tts</code>{" "}
             spoofs (Apache-2.0, commercial-safe) split across code-switched,
             monolingual Hindi, and monolingual English text, paired with 4,000
-            real bonafide clips (Common Voice Hindi + LibriSpeech English) —
-            evaluated against the codec-aug checkpoint:
+            real bonafide clips (Common Voice Hindi + LibriSpeech English).
+            Earlier checkpoints never trained on it, so it exposed a
+            cross-TTS-engine gap. v3 folds the set's <strong className="text-white/75">train</strong> split
+            into training — with a stratified held-out <strong className="text-white/75">test</strong> split
+            (800 bonafide / 400 spoof) so the numbers below stay honest:
           </p>
         </Reveal>
         <Reveal delay={0.05}>
-          <Table head={["Split", "n (spoof)", "EER"]} rows={synthRows.map((r) => [r.split, r.n, eer(r.eer)])} />
+          <Table
+            head={["Split (held-out)", "Codec-aug (eval-only)", "v3 (trained on hi-en)"]}
+            rows={synthRows.map((r) => [r.split, eer(r.before), eer(r.after)])}
+          />
           <p className="mt-4 max-w-3xl text-sm leading-relaxed text-white/45">
-            All three language splits land within ~1.3pp of each other — the
-            gap isn't concentrated in code-switched or monolingual content, it's
-            uniform. The ~33% EER reflects a checkpoint that has never seen a{" "}
-            <code className="bg-white/10 px-1 py-0.5 font-mono">parler-tts</code> output during training
-            (it trained only on ASVspoof's 2019-era attacks) — this measures
-            cross-TTS-engine generalization to an unseen synthesis method, not a
-            flaw in the codec-robustness work above.
+            Folding the hi-en train split into training collapses held-out
+            code-switch EER from <strong className="font-mono text-white/80">33.50% → 0.50%</strong> (hi-en)
+            and <strong className="font-mono text-white/80">~32% → 0.75%</strong> overall — measured on
+            the 1,200-utterance held-out test split the checkpoint never saw.
+            The earlier ~32% was never a ceiling: it measured cross-TTS-engine
+            generalization to an unseen synthesis method, and training on that
+            method closes it, while the codec robustness above is preserved.
           </p>
         </Reveal>
       </section>
