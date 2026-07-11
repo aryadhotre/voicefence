@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import os
 import tempfile
 import urllib.request
 from pathlib import Path
@@ -102,6 +103,11 @@ class ModelService:
         self.checkpoint_sha256 = _sha256sum(path)
         self.checkpoint_epoch = ck.get("epoch")
         self.checkpoint_run = ck.get("config", {}).get("out_dir")
+        # Windows are scored in mini-batches to cap peak memory: a long clip is
+        # many ~4s windows, and one big stacked forward pass OOMs a 512 MB
+        # worker (502). Default 1 = the known-safe single-window footprint;
+        # raise MODEL_MAX_WINDOW_BATCH on a larger instance for throughput.
+        self.window_batch = max(1, int(os.getenv("MODEL_MAX_WINDOW_BATCH", "1")))
         # Optimizer/scaler state is only needed for --resume during training,
         # not for inference — drop the references to keep the serving
         # process's memory footprint down.
@@ -136,7 +142,8 @@ class ModelService:
                     "need at least 0.25s)."
                 )
 
-            scores = window_scores(self.model, wav, self.samples, self.device)
+            scores = window_scores(self.model, wav, self.samples, self.device,
+                                   max_batch=self.window_batch)
             s_min = float(scores.min())
             s_mean = float(scores.mean())
             verdict = "bonafide-like" if s_min >= self.threshold else "spoof-like"

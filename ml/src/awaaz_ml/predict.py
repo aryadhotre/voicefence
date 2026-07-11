@@ -29,7 +29,19 @@ def window_scores(
     samples: int,
     device: torch.device,
     hop_ratio: float = 0.5,
+    max_batch: int = 1,
 ) -> np.ndarray:
+    """Score a clip in ~`samples`-length windows; returns one score per window.
+
+    Windows are run in mini-batches of at most `max_batch` so peak memory stays
+    bounded regardless of clip length — a long clip is many windows, and
+    stacking them all into a single forward pass OOM-kills a memory-capped
+    serving process (Render's 512 MB tier 502s on anything past ~one window).
+    The default of 1 matches the footprint of a single-window clip, which is
+    known-safe there; raise it where memory allows for throughput. The model is
+    in eval mode (BatchNorm uses running stats), so batching does not change any
+    score — results are identical to a single stacked batch.
+    """
     if wav.shape[0] <= samples:
         chunks = [pad_or_crop(wav, samples, random_crop=False)]
     else:
@@ -38,10 +50,13 @@ def window_scores(
         if starts[-1] != wav.shape[0] - samples:
             starts.append(wav.shape[0] - samples)
         chunks = [wav[s : s + samples] for s in starts]
-    batch = torch.from_numpy(np.stack(chunks)).to(device)
+    out: list[np.ndarray] = []
     with torch.no_grad():
-        logits = model(batch)
-    return RawNet2.scores_from_logits(logits.float()).cpu().numpy()
+        for i in range(0, len(chunks), max(1, max_batch)):
+            batch = torch.from_numpy(np.stack(chunks[i : i + max_batch])).to(device)
+            logits = model(batch)
+            out.append(RawNet2.scores_from_logits(logits.float()).cpu().numpy())
+    return np.concatenate(out)
 
 
 def main() -> None:
