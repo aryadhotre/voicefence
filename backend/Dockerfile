@@ -48,4 +48,10 @@ ENV PORT=10000
 EXPOSE 10000
 
 # Shell form so ${PORT} expands (Render injects its own PORT at runtime).
-CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT}
+#
+# --workers 1 is pinned deliberately: uvicorn falls back to $WEB_CONCURRENCY
+# when --workers isn't passed (uvicorn/config.py), and every worker is a
+# separate process that loads its own copy of torch + the model. At ~400 MB
+# resident each, a second worker alone would blow the 512 MB tier before the
+# service ever binds a port. Scale with instance count, not workers.
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --workers 1

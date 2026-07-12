@@ -147,10 +147,12 @@ list with descriptions. Key ones:
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `MODEL_CHECKPOINT_PATH` | `../ml/runs/rawnet2_codecaug/best.pt` | Where to load the checkpoint from |
+| `MODEL_CHECKPOINT_PATH` | `../ml/runs/rawnet2_v3_hien/best_inference.pt` | Where to load the checkpoint from |
 | `MODEL_CHECKPOINT_URL` | unset | If the path above doesn't exist at startup, download it from here first (see below) |
 | `MODEL_CHECKPOINT_SHA256` | unset | If set, verify the downloaded file's hash before loading; fail loudly on mismatch |
 | `MODEL_DEVICE` | auto | `cuda` / `cpu` / unset (auto-detect, falls back to cpu) |
+| `MODEL_MAX_WINDOW_BATCH` | `1` | Windows scored per forward pass. `1` is the memory-safe default for a 512MB tier; raise it for throughput on a bigger box |
+| `TORCH_NUM_THREADS` | `1` | torch intra-op threads (CPU only). Defaults to 1 because Render's shared-CPU tiers give a fraction of a core, so extra threads add arenas and contention, not throughput |
 | `CORS_ORIGINS` | `*` | Comma-separated allowed origins; tighten before real traffic |
 | `MAX_UPLOAD_MB` | `25` | Reject uploads larger than this (`/analyze`) |
 | `MAX_CALL_SECONDS` | `600` | End a live-analyze call after this long (`/ws/live-analyze`) |
@@ -159,17 +161,28 @@ list with descriptions. Key ones:
 
 ## Deploying the checkpoint file (read this before deploying)
 
-**This is a real deployment blocker if ignored.** `best.pt` is ~200MB, is
+**This is a real deployment blocker if ignored.** The checkpoint is
 gitignored (see repo-root `.gitignore` — `*.pt` and `runs/` are both
 excluded), and will **not** be present in a fresh clone or a fresh Render
 build. If you deploy without addressing this, the container will fail to
 start with `FileNotFoundError` on the checkpoint path.
 
+**Serve `best_inference.pt`, never `best.pt`.** Training writes optimizer +
+AMP-scaler state into the checkpoint so a run can be `--resume`d, which for
+RawNet2 is 141MB of Adam moments against 70MB of actual weights. `torch.load`
+materialises the entire file before the serving code can discard anything, so
+pointing production at the training checkpoint costs ~138MB of **peak** RSS at
+startup for state the forward pass never reads — and that spike is what
+OOM-killed the 512MB Render tier. `python -m awaaz_ml.strip_checkpoint` writes
+the inference-only artifact (211.6MB → 70.6MB); the weights are bit-identical,
+so scores are unchanged (verified across 75 held-out files / 184 windows, max
+abs diff 0.0).
+
 Three ways to get it onto the server, in order of recommendation:
 
 1. **`MODEL_CHECKPOINT_URL` (implemented and already in use — this is not
-   hypothetical, `rawnet2_codecaug/best.pt` is live at the URL below right
-   now).** Chose a **public Hugging Face Hub model repo** over a GitHub
+   hypothetical, `rawnet2_v3_hien/best_inference.pt` is live at the URL below
+   right now).** Chose a **public Hugging Face Hub model repo** over a GitHub
    Release: this project wasn't even a git repository at the time of this
    build (no repo to attach a release to), whereas HF Hub needed nothing
    new — same account already used for `indic-parler-tts` — and a public
@@ -179,9 +192,12 @@ Three ways to get it onto the server, in order of recommendation:
    Common Voice/user-data bucket would warrant different handling).
 
    ```
-   MODEL_CHECKPOINT_URL=https://huggingface.co/Arya12367/voicefence-rawnet2-codecaug/resolve/main/best.pt
-   MODEL_CHECKPOINT_SHA256=82af0aaa4de1d849e0f00d1ea4662c1ed774f539e7ef8f915006fe307d87be42
+   MODEL_CHECKPOINT_URL=https://huggingface.co/Arya12367/voicefence-rawnet2-v3-hien/resolve/main/best_inference.pt
+   MODEL_CHECKPOINT_SHA256=b5e1e4fe94b17b003fdb4d6fefab34318a9c8df2123b77e87501a0fff4075201
    ```
+
+   (The same repo still hosts the full 211.6MB training `best.pt` — keep it
+   for `--resume`, but do not serve it. See the note above.)
 
    On startup, if `MODEL_CHECKPOINT_PATH` doesn't exist locally,
    `app/inference.py` downloads it from this URL, **verifies the SHA-256
@@ -189,12 +205,12 @@ Three ways to get it onto the server, in order of recommendation:
    startup loudly on a mismatch — a corrupt transfer or a URL silently
    re-pointed at the wrong file should never fail silently into serving
    bad weights), then caches it at `MODEL_CHECKPOINT_PATH` for next time.
-   Verified end-to-end: local `best.pt` moved aside, server restarted with
-   only these two env vars set, downloaded ~212MB, checksum matched,
-   loaded, and served a request with scores identical to the pre-move run
-   — see the cold-start test log below.
+   Verified end-to-end: local checkpoint moved aside, server restarted with
+   only these two env vars set, downloaded, checksum matched, loaded, and
+   served a request with scores identical to the pre-move run — see the
+   cold-start test log below.
    **Trade-off:** first startup after each fresh deploy is slower (one-time
-   ~200MB download); works identically on every host with zero
+   ~70MB download); works identically on every host with zero
    platform-specific setup, which is why it's the default here.
 2. **Render persistent disk.** Attach a disk to the service, `scp`/upload
    `best.pt` onto it once via Render's shell, and set
@@ -203,8 +219,9 @@ Three ways to get it onto the server, in order of recommendation:
    Render-specific — you redo this manually if you ever recreate the
    service or disk, and persistent disks aren't available on Render's free
    tier.
-3. **Bake it into the Docker image at build time.** Add a `COPY best.pt
-   /app/ml/runs/rawnet2_codecaug/best.pt` step (fetched via a build-time
+3. **Bake it into the Docker image at build time.** Add a `COPY
+   best_inference.pt /app/ml/runs/rawnet2_v3_hien/best_inference.pt` step
+   (fetched via a build-time
    `curl`/`ADD <url>` if you don't want the binary in your build context).
    **Trade-off:** simplest at request time (zero startup latency, no
    runtime dependency on an external host being up), but bloats the image

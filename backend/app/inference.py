@@ -14,6 +14,7 @@ import urllib.request
 from pathlib import Path
 
 import numpy as np
+import torch
 
 from awaaz_ml.evaluate import load_checkpoint
 from awaaz_ml.predict import window_scores
@@ -95,6 +96,14 @@ class ModelService:
                 )
 
         self.device = get_device(device_pref)
+
+        # torch defaults its intra-op pool to one thread per visible core, but
+        # Render's shared-CPU tiers give a fraction of a core — the extra
+        # threads only add per-thread arenas and contention, never throughput.
+        # Env-tunable for a bigger box (same idiom as MODEL_MAX_WINDOW_BATCH).
+        if self.device.type == "cpu":
+            torch.set_num_threads(max(1, int(os.getenv("TORCH_NUM_THREADS", "1"))))
+
         self.model, ck = load_checkpoint(path, self.device)
         self.samples = int(ck["config"]["data"]["samples"])
         self.threshold = float(ck.get("eer_threshold", 0.0))
@@ -108,9 +117,13 @@ class ModelService:
         # worker (502). Default 1 = the known-safe single-window footprint;
         # raise MODEL_MAX_WINDOW_BATCH on a larger instance for throughput.
         self.window_batch = max(1, int(os.getenv("MODEL_MAX_WINDOW_BATCH", "1")))
-        # Optimizer/scaler state is only needed for --resume during training,
-        # not for inference — drop the references to keep the serving
-        # process's memory footprint down.
+        # Belt-and-braces only: production is pointed at an inference-only
+        # checkpoint that has no optimizer/scaler in the first place (see
+        # config._DEFAULT_CHECKPOINT). Popping here canNOT lower peak RSS —
+        # torch.load has already materialised the whole file by this line — so
+        # it is not a substitute for stripping the artifact. It just avoids
+        # holding the state if someone points MODEL_CHECKPOINT_URL at a raw
+        # training checkpoint.
         ck.pop("optimizer", None)
         ck.pop("scaler", None)
         logger.info(

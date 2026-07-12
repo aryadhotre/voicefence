@@ -13,14 +13,20 @@ from functools import lru_cache
 from pathlib import Path
 
 # backend/app/config.py -> backend/app -> backend -> repo root -> ml/...
-# Points at the current production checkpoint (rawnet2_v3_hien). On an
-# ephemeral deploy this file won't exist, so the server fetches it from
-# MODEL_CHECKPOINT_URL and caches it here; the run-specific name also means a
-# checkpoint bump (new URL/hash) never collides with a previously-cached file
-# from an older run on a persistent disk — it downloads the new one.
+# Points at the current production checkpoint (rawnet2_v3_hien), in its
+# inference-only form: best_inference.pt is best.pt with the optimizer/scaler
+# state stripped (211.6 MB -> 70.6 MB, identical weights — see
+# awaaz_ml.strip_checkpoint). Serving the training checkpoint made torch.load
+# materialise 141 MB of Adam moments it then threw away, and that startup peak
+# is what OOM-killed the 512 MB tier.
+#
+# On an ephemeral deploy this file won't exist, so the server fetches it from
+# MODEL_CHECKPOINT_URL and caches it here. The file-specific name matters: on a
+# persistent disk a bare best.pt would still hold the *old* 212 MB artifact and
+# get loaded straight from cache, silently undoing the fix.
 _DEFAULT_CHECKPOINT = (
     Path(__file__).resolve().parent.parent.parent
-    / "ml" / "runs" / "rawnet2_v3_hien" / "best.pt"
+    / "ml" / "runs" / "rawnet2_v3_hien" / "best_inference.pt"
 )
 
 
